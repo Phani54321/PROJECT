@@ -1,0 +1,3179 @@
+﻿$(function () {
+
+    $("#nonseamless").submit();
+
+    if (document.URL.includes("buy-online-december-offer") && !document.referrer.includes("decemberoffer")) {
+        window.location.href = "/decemberoffer";
+    }
+
+    function checkVehicleItems() {
+        $('.filterVehicle').each(function () {
+            var totolItems = $('.filterVehicle').length;
+            var checkedItems = $('.filterVehicle:checked').length;
+            if (checkedItems === totolItems) {
+                $(".filterVehicleAll").prop("checked", "checked");
+            }
+        });
+    }
+    checkVehicleItems();
+
+    function checkVehicleItems() {
+        $('.filterVehicle').each(function () {
+            var totolItems = $('.filterVehicle').length;
+            var checkedItems = $('.filterVehicle:checked').length;
+            if (checkedItems === totolItems) {
+                $(".filterVehicleAll").prop("checked", "checked");
+            }
+        });
+    }
+    checkVehicleItems();
+
+    $('.filterVehicle').change(function () {
+        $(".filterVehicleAll").prop('disabled', false);
+        checkVehicleItems();
+
+        var a = $(this);
+
+
+        $('.divVehicleTitle').each(function () {
+
+
+            if ($(this).attr('data-id') == a.attr('data-id')) {
+
+                if (a.prop("checked") == true) {
+
+                    $(this).show();
+                }
+                else {
+                    $(".filterVehicleAll").prop("checked", false);
+                    $(this).hide();
+                }
+                return false;
+
+            }
+
+        });
+
+
+    });
+    $(".filterVehicleAll").change(function () {
+
+        if ($(this).prop("checked") == true) {
+
+            $('.filterVehicle').each(function () {
+                if ($(this).prop("checked") == false) {
+                    $(this).click();
+                }
+            });
+
+        }
+        else {
+            $('.filterVehicle').each(function () {
+                if ($(this).prop("checked") == true) {
+                    $(this).click();
+                }
+            });
+        }
+    });
+
+    $("#FilterBtn").click(function (e) {
+
+        $('.noResultsClass').hide();
+
+      
+
+        $('.vehicleList').hide();
+        $('.loader').show();
+        e.preventDefault();
+        $.ajax({
+            type: "POST",
+            url: "/api/Filter/",
+            data: {
+                StateID: $("#stateDrp").val(),
+                Price: $("#budget option:selected").val(),
+                Displacement: $('#disFilter').val()
+            },
+            success: function (result) {
+                $('.vehicleList').html(result);
+                $('.loader').hide();
+                lazyLoadImage('.vehicleList');
+				setLazy();
+				lazyLoad();
+                //$('.filterCTA').trigger('click');
+                $('.vehicleList').show();
+                $(window).trigger('scroll');
+                if ($('.divVehicleTitle').length == 0) {
+
+                    $('.noResultsClass').show();
+
+                }
+                dynamicIndianPrice();
+            },
+            error: function (result) {
+                $('.vehicleList').html('');
+                $('.noResultsClass').show();
+
+            }
+        });
+    });
+	
+	var compPathName = window.location.pathname;
+	if (compPathName === "/Book-a-ride-campaign" || compPathName === "/Book-a-ride-Campaign" || compPathName === "/Book-Online-Campaign" || compPathName === "/Book-Online-campaign" || compPathName == "/Book-a-ride-160-2V") {
+		$('nav.navbar, .secondaryMenuWrapper, .secondaryAlias').remove();
+		$('.layoutWrap.innWrap').css('padding-top','10px');
+	}
+	
+    $("#stateDrp").change(function () {
+
+        // $('.vehicleList').hide();
+        // $('.loader').show();
+        var selectedTabVehi = $('.vehiclListWrap .nav-tabs li.active').data('id');
+        $.ajax({
+            type: "POST",
+            url: "/api/StateChange/",
+            data: {
+                StateID: $("#stateDrp").val()
+            },
+            success: function (result) {
+                $('.vehicleList').html(result);
+                $('.loader').hide();
+                lazyLoadImage('.vehicleList');
+				setLazy();
+				lazyLoad();
+
+                $('.filterVehicle').each(function () {
+                    if ($(this).prop("checked") == false) {
+                        $(this).click();
+                    }
+                });
+                //   $('.vehicleList').show();
+                $(window).trigger('scroll');
+                if ($('.divVehicleTitle').length == 0) {
+
+                    $('.noResultsClass').show();
+
+                }
+                dynamicIndianPrice();
+
+                if (typeof changeCitiesForState === "function") {
+                    changeCitiesForState();
+                }
+
+                // On state change to make selected tab active
+                $('.vehicleList .tab-pane').removeClass('active in');
+                $('.vehicleList .tab-pane[data-id="' + selectedTabVehi + '"]').addClass('active in');
+
+            },
+            error: function (result) {
+                $('.vehicleList').html('');
+                $('.noResultsClass').show();
+
+            }
+        });
+    });
+
+    getLocation();
+
+    //$('.vehicleCards').css('opacity','0');
+    $("#stateDrpHomePage").change(function () {
+
+        var activeIndex = $('.vehiclesHome .leve1.nav-tabs>li.active').index();
+        var activeIndexVehicle = $('.vehiclesHome .tab-pane.active .leve2 .nav-tabs>li.active').index();
+        var slickCurrentSlide = $('.vehiclesHome .tab-pane.active .vehicleCards .slick-current.slick-active').data('slick-index');
+
+        $.ajax({
+            type: "POST",
+            url: "/api/StateChangeHomePage/",
+            data: {
+                StateID: $("#stateDrpHomePage").val()
+            },
+            success: function (result) {
+                $('#overViewPartial').html(result);
+
+                $(".vehiclesHome .leve2 .asideBrandList").mCustomScrollbar();
+                lazyLoadImage('.vehiclesHome');
+				setLazy();
+				lazyLoad();
+                //$('.tab-pane').append("<div class='loadSlide'></div>");
+                $('.image_spinner').show();
+                //$('.tab-pane').append("<div id='image_spinner'><img src='https://ws.latlong.in/embedder/vendor/tvs_logo.png'/><div class='spin spinner'></div></div>");
+                $('.vehicleCards').css('opacity', '0');
+
+                setTimeout(function () {
+                    $('.vehicleCards').slick("refresh");
+                    equalheight('.vehicleWrap');
+                    setTimeout(function () {
+                        $('.tab-pane.active .vehicleCards').slick('slickGoTo', slickCurrentSlide, true);
+                        //$('.tab-pane .loadSlide').fadeOut();                
+                        $('.image_spinner').fadeOut();
+                        $('.vehicleCards').animate({ opacity: '1' }, 300);
+                    }, 500);
+                }, 100);
+
+                $(".vehiclesHome ul.nav-tabs a").click(function (e) {
+                    e.preventDefault();
+                    $(this).tab("show");
+
+                    setTimeout(function () {
+                        $('.vehicleCards').slick("refresh");
+                        equalheight('.vehicleWrap');
+                    }, 100);
+
+                    $(".vehicleCards").not('.slick-initialized').slick({
+                        slidesToShow: 1,
+                        responsive: [{
+                            breakpoint: 815,
+                            settings: {
+                                infinite: !0,
+                                slidesToShow: 1,
+                                arrows: !1,
+                                centerMode: !0,
+                                centerPadding: "30px"
+                            }
+                        }]
+                    });
+
+
+                });
+
+                dynamicIndianPrice();
+
+                $('.vehiclesHome .leve1.nav-tabs>li').eq(activeIndex).find('a').trigger('click'); //State dropdown on home page: Selected Tab Active
+                $('.vehiclesHome .tab-pane.active .leve2 .nav-tabs>li').eq(activeIndexVehicle).find('a').trigger('click'); //State dropdown on home page: Selected Tab -> Product Active
+
+
+            },
+            error: function (result) {
+                $('#overViewPartial').show();
+
+            }
+        });
+    });
+
+
+    if ( !$('.brand-price.rtr').length ) {
+		var $select1 = $('#state'), 
+			$select2 = $('#city'),
+			$options = $select2.find('option');
+		
+		$select1.on('change', function () { 
+			$select2.html($options.filter('[data-state="' + this.value + '"]'));
+			$("#city option:first").attr('selected', 'selected');
+			$('#pincode').val('');
+		}).trigger('change');
+	}
+
+	//Submit cluster book vehicle
+	
+	$("#submitBookVehicleCluster").click(function (e) {
+		
+
+        if (!$("#vinCluster").valid()) { return false; }
+		
+	
+			var stateVal = $('#state').val();
+			var stateName = $('#state option:selected').text();
+			var cityVal = $('#city').val();
+			var pinCode = $('#pincode').val();
+            var selectedDealer = $('.checkboxCont.checkToRadio.active');
+            var selectedDealerID = selectedDealer.data('dealerid');
+            var selectedDealerName = selectedDealer.data('dealername');
+            var selectedDealerContact = selectedDealer.data('dealercontact');
+            var selectedDealerAddress = selectedDealer.data('dealeraddress');
+            var selectedDealerEmail = selectedDealer.data('dealeremail');
+			var selectedDealerCode = selectedDealer.data('dealercode');
+			var vin = $('#vinInput').val();
+			
+			$('#selectedPincode').val(pinCode);
+			$('#selectedStateCode').val(stateVal);
+			$('#selectedStateName').val(stateName);
+			$('#selectedCity').val(cityVal);
+            $('#dealerId').val(selectedDealerID); 
+            $('#dealerName').val(selectedDealerName);
+            $('#dealerContact').val(selectedDealerContact);
+            $('#dealerAddress').val(selectedDealerAddress); 
+            $('#dealerEmail').val(selectedDealerEmail); 	
+			$('#dealerCode').val(selectedDealerCode); 
+			$('#vinNumber').val(vin); 
+
+        $('.dearlerErrMsg').hide();
+        var a;
+        var data = $("#vinCluster").serializeArray();
+		data.push({ name: this.name, value: this.value });
+
+        // start 
+        var vrtest;
+        var otpVal = $('#userotpNumber').val();
+        if (otpVal != null && otpVal != "") {
+            $.ajax({
+                url: '/api/VerifyBookClusterVechicleOtp',
+                type: "POST",
+                data: data,
+                success: function (result) {
+                    a = result.Success;
+                    vrtest = result.Success;
+                    if (a === true) {
+                        console.log('validate otp: in true');
+                        $('.errorMsgOPT').hide();
+                        console.log('validate otp: success');
+
+                        //console.log('data ==== '+ data);
+                        delete_cookie("BookClusterOnline");
+                        setCookieObject("BookClusterOnline", data);
+
+                        if (selectedDealer != null && selectedDealer != "") {
+                            console.log('In main If');
+							$("#vinCluster").submit();
+                             /* $.ajax({
+								 ("#vinCluster").submit();
+								method: "POST",
+                                    url: "/api/validateBookClusterVehicleOtp",
+                                    data: data,
+                                    success: function (e) {
+                                        // $("#btnSubmitBookAButton").prop('disabled', false);
+                                        console.log('inside submitotp');
+                                        if (e) {
+                                            document.write(e);
+                                        }
+                                        else { $("#errorMessage").toggle(); }
+                                        //console.log(e);
+                                        $("html, body").animate({ scrollTop: 0 }, "slow");
+                                        $('.tncCont').hide();
+                                    },
+                                    error: function (error) {
+                                        //console.log(error);
+                                        $("#errorMessage").toggle();
+                                        // $("#btnSubmitBookAButton").prop('disabled', false);
+                                    }
+                            }).done(function () {
+                                if (a == "False") {
+                                    console.log('in FALSE done');
+                                    $('.dearlerErrMsg').show();
+                                    // $("#btnSubmitBookAButton").prop('disabled', false);
+                                    return false;
+                                }
+
+                            }); */
+                        } else {
+                            //alert('Please select Dealer');
+                            //return false;
+                        }
+                    }
+                    else {
+                        console.log('validate otp: in false' + a);
+                        $('.errorMsgOPT').show();
+                        return false;
+                        console.log('validate otp: in 123');
+                    }
+                },
+                error: function (result) {
+                    console.log("Error in result submit"); return false;
+                }
+            });
+
+        }
+
+    });
+	
+    $("#btnSubmitBookAButton").click(function (e) {
+		// Vehicle Raider
+		if ($('#vehicle').val() == 116) {
+			// if Raider- Drum variant
+			var raiderDrum = $('#variant').val();
+			var raiderDrumText = $("#variant :selected").text();
+			if ( raiderDrum == 204 || raiderDrumText == "Drum") {
+				alert("Only disc variant of TVS Raider is available for purchase.");
+				return false; 
+			}
+		}
+
+
+        if (!$("#testDriveForm").valid()) { return false; }
+        var entrqYellowColor = $('#color').val();
+        var validDealers = ['11004', '11552', '20105', 'BD1100401', '10815', '11291', '10120', '12125', '11950', '11437', '11150', 'BD1156801', 'BD1100401', '12018', 'BD1143902', '12115', '11775', '10093', '10970', '10132', 'BD1041801', '11464', '11645', '11229', '11403', 'BD1177502', '10610', '11005', 'BD1146402', '11314', 'BD1013901', '10139', 'BD1166701', 'BD1013201', '11650', '10766', '11529', '11308', '11667', '11845', '12127', '10907', 'BD1177501', '11848', 'BD1099502', '10682', '11602', '10031', '11604', '20058', '11030', '12168', '11568', '11699', '11370', '10855', '11564', '11279', '12084', '11278', 'BD1143901', 'BD1097001', '12089', '10858', 'BD1146401', '11933', '10121', '11439', '10418', '11717', '12063', '10814'];
+        var selectedDealerVal = $('#dealer').val();
+
+        //console.log('Vaidd = ' + validDealers.includes(selectedDealerVal) );
+        // if (entrqYellowColor === '357' && !(validDealers.includes(selectedDealerVal)) ) {
+        //        // alert('Dealer is not maching');
+        //         $('.dearlerErrMsg').show();
+        //         return false; 
+        // }
+
+        //$(this).prop('disabled', true);
+        $('.dearlerErrMsg').hide();
+        var a;
+        var data = $("#testDriveForm").serializeAndEncode();
+
+        // start 
+        var vrtest;
+        var otpVal = $('#userotpNumber').val();
+        if (otpVal != null && otpVal != "") {
+            $.ajax({
+                url: '/api/VerifyBookOnlineOTP',
+                type: "POST",
+                data: data,
+                success: function (result) {
+                    a = result.Success;
+                    vrtest = result.Success;
+                    if (a === true) {
+                        console.log('validate otp: in true');
+                        $('.errorMsgOPT').hide();
+                        console.log('validate otp: success');
+
+                        //console.log('data ==== '+ data);
+                        delete_cookie("BookOnline");
+                        setCookieObject("BookOnline", data);
+
+
+                        var selectedDealer = $('#dealer').val();
+                        if (selectedDealer != null && selectedDealer != "") {
+                            console.log('In main If');
+                            $.ajax({
+								/*
+                                url: '/api/GetBookOnlineDealerOperationalStatus',
+                                type: "GET",
+                                data: {
+                                    DealerCode: selectedDealer
+                                },
+                                success: function (result) {
+                                    console.log('Success Result = ' + result);
+                                    a = result;
+                                    if (!result || result.error) {
+                                        if (result == "True") {
+                                            console.log('this is true');
+                                        }
+                                        else {
+                                            console.log('this is false');
+                                            $('.dearlerErrMsg').show();
+                                            return false;
+                                        }
+                                    }
+
+                                },
+                                error: function (result) {
+                                    console.log("Error in like submit");
+                                }
+								*/
+                            }).done(function () {
+                                if (a == "False") {
+                                    console.log('in FALSE done');
+                                    $('.dearlerErrMsg').show();
+                                    // $("#btnSubmitBookAButton").prop('disabled', false);
+                                    return false;
+                                }
+                                $.ajax({
+                                    method: "POST",
+                                    url: "/api/submitotp",
+                                    data: data,
+                                    success: function (e) {
+                                        // $("#btnSubmitBookAButton").prop('disabled', false);
+                                        console.log('inside submitotp');
+                                        if (e.Success) {
+                                            console.log(e.Financer);
+                                            if (e.Financer == 0) {
+                                                $('#financerAval').hide();
+                                            }
+                                            else {
+                                                $('#financerAval').show();
+                                            }
+											if (e.IsNtoq == 0) {
+                                                $('.emiOption').hide();
+                                            }
+                                            else {
+                                                $('.emiOption').show();
+                                            }
+											
+                                            $('.mobile #blueBox').hide();
+                                            $('.mobile #tvsCredit').hide();
+                                            $("#testDriveForm, #testDriveFormOTP").toggle();
+											dynamicIndianPrice();
+                                        }
+                                        else { $("#errorMessage").toggle(); }
+                                        //console.log(e);
+                                        $("html, body").animate({ scrollTop: 0 }, "slow");
+                                        $('.tncCont').hide();
+                                    },
+                                    error: function (error) {
+                                        //console.log(error);
+                                        $("#errorMessage").toggle();
+                                        // $("#btnSubmitBookAButton").prop('disabled', false);
+                                    }
+                                });
+
+                            });
+                        } else {
+                            //alert('Please select Dealer');
+                            //return false;
+                        }
+                    }
+                    else {
+                        console.log('validate otp: in false' + a);
+                        $('.errorMsgOPT').show();
+                        return false;
+                        console.log('validate otp: in 123');
+                    }
+                },
+                error: function (result) {
+                    console.log("Error in result submit"); return false;
+                }
+            });
+
+        }
+
+    });
+
+    $("#btnSubmitOfferBookAButton").click(function (e) {
+
+        if (!$("#testDriveForm").valid()) { return false; }
+        var entrqYellowColor = $('#color').val();
+        var validDealers = ['11004', '11552', '20105', 'BD1100401', '10815', '11291', '10120', '12125', '11950', '11437', '11150', 'BD1156801', 'BD1100401', '12018', 'BD1143902', '12115', '11775', '10093', '10970', '10132', 'BD1041801', '11464', '11645', '11229', '11403', 'BD1177502', '10610', '11005', 'BD1146402', '11314', 'BD1013901', '10139', 'BD1166701', 'BD1013201', '11650', '10766', '11529', '11308', '11667', '11845', '12127', '10907', 'BD1177501', '11848', 'BD1099502', '10682', '11602', '10031', '11604', '20058', '11030', '12168', '11568', '11699', '11370', '10855', '11564', '11279', '12084', '11278', 'BD1143901', 'BD1097001', '12089', '10858', 'BD1146401', '11933', '10121', '11439', '10418', '11717', '12063', '10814'];
+        var selectedDealerVal = $('#dealer').val();
+
+        $('.dearlerErrMsg').hide();
+        var a;
+        var data = $("#testDriveForm").serializeAndEncode();
+
+        // start 
+        var vrtest;
+        var otpVal = $('#userotpNumber').val();
+        if (otpVal != null && otpVal != "") {
+            $.ajax({
+                url: '/api/VerifyBookOnlineOTP',
+                type: "POST",
+                data: data,
+                success: function (result) {
+                    a = result.Success;
+                    vrtest = result.Success;
+                    if (a === true) {
+                        console.log('validate otp: in true');
+                        $('.errorMsgOPT').hide();
+                        console.log('validate otp: success');
+
+                        //console.log('data ==== '+ data);
+                        delete_cookie("BookOnline");
+                        setCookieObject("BookOnline", data);
+                        var vehicleId = $('#vehicle').val();
+
+                        $('#SelectedVehicleID').val(vehicleId);
+
+                        $.getJSON("api/discountAmount", { modelcode: vehicleId, vehicleCode: vehicleId },
+                            function (data) {
+                                data = JSON.parse(data);
+                                var paymentAmount = parseInt($('#ModelPrice').val().replace(' ', ''));
+                                //alert(data);
+                                $.each(data, function (index, itemData) {
+									if (itemData.DiscountedAmount === 'NA') {
+										itemData.DiscountedAmount = "0";
+									}
+                                    var netPayableAmount = paymentAmount - parseInt(itemData.DiscountedAmount.replace(' ', ''));
+                                    $('#TotalDiscountPrice').html(itemData.DiscountedAmount.toString("## ##0"));
+                                    $('#hdnDiscountAmount1').val(itemData.DiscountedAmount);
+                                    $('#NetPayableAmount1').html(netPayableAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " "));
+                                    $('#selectedPaymentAmount').val(netPayableAmount);
+                                    $('#DiscountAmount').val(netPayableAmount);
+                                });
+                            });
+
+                        var selectedDealer = $('#dealer').val();
+                        if (selectedDealer != null && selectedDealer != "") {
+                            console.log('In main If');
+                            $.ajax({
+                                method: "POST",
+                                url: "/api/submitbookonlineofferotpasync",
+                                data: data,
+                                success: function (e) {
+                                    // $("#btnSubmitBookAButton").prop('disabled', false);
+                                    console.log('inside submitotp');
+                                    if (e.Success) {
+                                        $('.mobile #blueBox').hide();
+                                        $('.mobile #tvsCredit').hide();
+                                        $("#testDriveForm, #testDriveFormOTP").toggle();
+                                    }
+                                    else { $("#errorMessage").toggle(); }
+                                    //console.log(e);
+                                    $("html, body").animate({ scrollTop: 0 }, "slow");
+                                    $('.tncCont').hide();
+                                },
+                                error: function (error) {
+                                    //console.log(error);
+                                    $("#errorMessage").toggle();
+                                    // $("#btnSubmitBookAButton").prop('disabled', false);
+                                }
+                            });
+                        }
+                        else {
+                            console.log('validate otp: in false' + a);
+                            $('.errorMsgOPT').show();
+                            return false;
+                            console.log('validate otp: in 123');
+                        }
+                    }
+                },
+                error: function (error) {
+                    //console.log(error);
+                    $("#errorMessage").toggle();
+                    // $("#btnSubmitBookAButton").prop('disabled', false);
+                }
+            });
+        }
+    });
+
+    $("#BookOnlineButtonBack").click(function (e) {
+        //$("#testDriveFormOTP, #testDriveForm").toggle();
+    });
+
+    $("#commuternext").click(function (e) {
+
+        if (!$("#testDriveForm").valid()) { return false; }
+        $(this).prop('disabled', true);
+
+        var data = $("#testDriveForm").serialize();
+
+        $.ajax({
+            method: "POST",
+            url: "/api/submitotp",
+            data: data,
+            success: function (e) {
+                $("#commuternext").prop('disabled', false);
+                if (e.Success) { $("#testDriveForm, #testDriveFormOTP").toggle(); }
+                else { $("#errorMessage").toggle(); }
+                console.log(e);
+                $("html, body").animate({ scrollTop: 0 }, "slow");
+                $('.tncCont').hide();
+            },
+            error: function (error) {
+                console.log(error);
+                $("#errorMessage").toggle();
+                $("#commuternext").prop('disabled', false);
+            }
+        });
+    });
+	
+	$('#paymentSummaryForm').on('click', '.payBooking', function(){
+		$.ajax({ 
+			method: "POST",
+			url: "/api/GetBTOOrderCountForPresentMonth",
+			//data: data,
+			success: function (result) {  
+				var successRecord = parseInt(result.SuccessRecord);
+				var maxBooking = parseInt(result.MaxBooking);
+				if ((result.StartBooking == "true") && (successRecord < maxBooking)) { 
+					$('#paymentSummaryForm').attr('action','/api/submitpaymentsummary'); 
+					$('#paymentSummaryForm').submit();
+					$('.errorlimit').hide();
+				}else {
+					$('.errorlimit').fadeIn();
+					return false;
+				}
+			},
+			error: function (error) {
+				console.log("Main error = " + error);
+			}
+		});
+		
+		//return false;
+	});
+
+	if ( !$('#vinCluster').length ) {
+	if ($('.btoDealer').length) {
+		errorMsgText();
+		}
+	}
+	
+	if ( $('#vinCluster').length ) {
+		errorMsgText();	
+	}
+	
+
+});
+var qs;
+$(window).load(function () {
+	if ( $('.testrideFinal').length ) {
+		var deviceName = platform.name, //'IE'
+		//deviceProduct = platform.product, // 'iPad'
+		deviceManufacturer = platform.manufacturer, // 'Apple'
+		deviceOS = platform.os; // 'Windows Server 2008 R2 / 7 x64'
+
+		var deviceProduct 	   = (platform.product == null ||  platform.product == '') ? "Desktop" : platform.product;
+		$('#deviceProduct').val(deviceProduct);
+		$('#deviceManufacturer').val(deviceManufacturer);
+		console.log("Device Product = : " + $('#deviceProduct').val() + " and Device Manufacturer = " + $('#deviceManufacturer').val());
+	}
+	
+    lazyLoadImage();
+
+    qs = parseInt(window.location.href.slice(window.location.href.indexOf('?') + 1));
+	//qs = (qs == 101) ? qs=10 : qs; 
+	
+    // implemented condition for book a ride corporate page
+    var forbookaridecorporate = $('#hdnVechicleRestricted').val();
+	
+    if (forbookaridecorporate == 0) {
+
+    }
+    else {
+        if (qs) {
+            var vehicleList = $('.vehicleSelectBoxListing ul > li');
+            vehicleList.each(function () {
+                if ($(this).find('a').attr('data-vehicleid') == qs) {
+                    $(this).find('a').trigger('click');
+                    $('.vehicleSelectBoxListing').remove();
+                    //$('.vehicleSelectBoxListing.mCustomScrollbar').remove();
+
+                }
+            });
+            $('#vehicle').val(qs).trigger('change');
+			
+			//December offer page code starts
+			var decemberpage = $("input[name=ContextItemId]").val();
+			if (decemberpage === '{B03F8480-E263-46C4-BC14-F5398DFD359B}' && qs === 100) {
+				$('#vehicle option[value = "100"], #vehicle option[value = "102"], #vehicle option[value = "104"], #vehicle option[value = "105"]').addClass('selectedOption'); 
+			}
+			//December offer page code ends
+			
+			$('#vehicle option[value = "'+ qs +'"]').addClass('selectedOption');
+            $('#vehicle > option').not('.selectedOption').remove();
+			
+        }
+
+        jQuery.fn.selectvarient2V = function() {
+            if (qs == 15) {                        
+                var Bookaride160 = window.location.pathname;
+                if (Bookaride160 == "/Book-a-ride-160-2V") {  
+                    var selectVartimer = setTimeout(function () {
+                        $('#variant').find('option').remove().end().append('<option value="RTR 160 2V">RTR 160 2V</option>').val('RTR 160 2V');
+                        //console.log ("this : " + $('#variant option').val());
+                        
+                        $('#variant').val('RTR 160 2V').trigger('change');
+                    }, 1000);
+                }
+            }
+        };
+
+        var timer = setTimeout(function () {
+            $('#ButtonSubmit').click();
+            //window.location='http://example.com'
+        }, 5000);
+
+        // if (qs === '114') {
+        //     setTimeout(function() {
+        //         $('#variant').val('217');
+        //     }, 1000)
+
+        //     setTimeout(function() {
+        //         $('#color').val('357');
+        //     }, 2000)
+        // }
+        // Book Online - Ntorq Race Editon Yellow Vehicle hide on load
+        var bookOnlinePage = window.location.pathname;
+        if ((bookOnlinePage == "/BS-VI-Book-Online") || (bookOnlinePage == "/en/BS-VI-Book-Online") || (bookOnlinePage == "/Book-Online") || (bookOnlinePage == "/book-online")) {
+            $("#vehicle option[value=" + 114 + "]").hide();
+        }
+
+    }
+	//console.log('QS = ' + qs);
+	if (qs == 14) {
+		//$('#vehicleSelectBox').val(10);
+		console.log('New Ntorqqqq');
+		$('#state').trigger('change');
+		newNtorqStates();
+		
+		$('#state').change(function(){
+			setTimeout(function(){
+				newNtorqStates();
+			},1000)
+		});				
+	}
+	if (qs == 150) { 
+		$('.vehicleSelectBoxListing ul>li').each(function(){
+			$(this).hide();
+			if ( $(this).find('a').data('vehicleid') == 1) {
+				$(this).show();
+			} 
+			if ( $(this).find('a').data('vehicleid') == 15) {
+				$(this).show();
+			} 
+		});
+		$('.vehicleSelectBoxListing.mCustomScrollbar').css({
+			"height":"180px", 
+			"width":"100%"
+		});
+	}
+	if (qs == 151) { 
+		$('.vehicleSelectBoxListing ul>li').each(function(){
+			$(this).hide();
+			if ( $(this).find('a').data('vehicleid') == 4) {
+				$(this).show();
+			} 
+			if ( $(this).find('a').data('vehicleid') == 5) {
+				$(this).show();
+			} 
+			if ( $(this).find('a').data('vehicleid') == 11) {
+				$(this).show();
+			} 
+		});
+		$('.vehicleSelectBoxListing.mCustomScrollbar').css({
+			"height":"160px", 
+			"width":"100%"
+		});
+	}
+		if (qs == 152) { 
+		$('.vehicleSelectBoxListing ul>li').each(function(){
+			$(this).hide();
+			if ( $(this).find('a').data('vehicleid') == 4) {
+				$(this).show();
+			} 
+			if ( $(this).find('a').data('vehicleid') == 5) {
+				$(this).show();
+			} 
+			if ( $(this).find('a').data('vehicleid') == 11) {
+				$(this).show();
+			} 
+			if ( $(this).find('a').data('vehicleid') == 8) {
+				$(this).show();
+			} 
+		});
+		$('.vehicleSelectBoxListing.mCustomScrollbar').css({
+			"height":"160px", 
+			"width":"100%"
+		});
+	}
+	if (qs == 10) { 
+		//$('.wrapper.innerpage').addClass('darkTheme');
+		//$('.qa-form').addClass('darkForm')
+	}
+		
+    if (qs == 101 && $('.rr310Bike').length) {
+        $('.rr310Bike').show();
+        $('.discount').hide();
+    }
+
+if ( $('.pricing').length || $('.rr310price').length ) {
+		$('#state').val('420000006').trigger('change');
+		$('#city').val('Central Delhi').trigger('change');
+		$('.bootstrap-select').removeClass('dropup'); 
+	}							  
+
+	// Book Vehicle page
+	
+	if ($('.btoDealer').length) { 
+		//var localityPincodeOnLoad = $('#localityPlaceHolder').val();
+		//console.log('localityPincodeOnload22 = ' + localityPincodeOnLoad);
+		/*
+		$('#state').val('');
+		$('#city').val('');
+		$('#pincode').val('');
+		$('#city option').remove();
+		$('#pincode').prop('disabled', true);
+		if ($('#pincode').val().length > 1) {
+			$('.qa-option .group.pincodeEle label.pinName').css('top','-20px'); 
+		}
+		*/
+		$(".btoDealer #localityPlaceHolder").trigger('change'); 
+	}
+	
+	if ($('#testDriveForm.formBookOnline').length) {
+		suppliesRange($('#state').val());
+	}
+	
+    if (qs == 15) {
+        var Bookaride = window.location.pathname;
+        if (Bookaride == "/Book-a-ride-Campaign-New") {
+            console.log ("bookaride");
+            //$("#vehicle option[value=" + 114 + "]").hide();
+        }
+    }
+    
+    $('#variant').selectvarient2V();
+
+});
+
+
+function newNtorqStates(){
+	var stateUL = $(document).find('#state').closest('.bootstrap-select').find('.dropdown-menu.inner');
+	stateUL.find('li').each(function (){
+		var $this= $(this);
+		$this.addClass('hideStates'); 
+		$this.find("a[id='bs-select-1-2']").parent().addClass('shownState');
+		$this.find("a[id='bs-select-1-15']").parent().addClass('shownState');
+		$this.find("a[id='bs-select-1-28']").parent().addClass('shownState');
+		$this.find("a[id='bs-select-1-25']").parent().addClass('shownState');
+		$this.find("a[id='bs-select-1-29']").parent().addClass('shownState');
+	});
+}
+
+function lazyLoadImage(lazyLoadScope) {
+    var parentSel = (lazyLoadScope) ? (lazyLoadScope + " ") : "";
+    var img = $(parentSel + 'img[data-src]');
+    //console.log(img);
+    $(img).each(function () {
+        var $this = $(this);
+        var imgData = $this.data('src');
+        //$this.attr('src', imgData).removeAttr('data-src');
+        $this.attr('src', imgData);
+    });
+}
+
+function detectLocation() {
+    navigator.geolocation.getCurrentPosition(showPosition, showErrorGeoLocation);
+}
+
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+        alert("Geolocation is not supported by this browser.");
+    }
+}
+
+function showPosition(position) {
+
+    $.post("https://api.latlong.in/oauth/token",
+        {
+            grant_type: "client_credentials",
+            client_id: "43b0f8c5434861a536ccccc9e74df151c33205f30fcadbad9b70c83abe54e38d",
+            client_secret: "1dab3d4661b8030984bd9f1b728497d7917e3f2130b7b0204487aeb34a8dd86b"
+        },
+
+        function (data) {
+
+            var token = data.access_token;
+            //alert(token);
+            //$.get("https://api.latlong.in/v2/reverse_geocode.json?latitude=" + position.coords.latitude + "&longitude=" + position.coords.longitude + "6&access_token=" + token + "",
+			
+			$.get("https://api.latlong.in/v2/location_details.json?location=" + position.coords.latitude + "," + position.coords.longitude + "&access_token=" + token + "",
+
+                function (data) {
+					$('#pincode').val(data.pincode);
+                    $('#localityPlaceHolder').val(data.pincode);
+                    if ($('#vinCluster').length) {
+                        showStateCitylabels();
+                    }
+                    $('#city').val(data.city)
+                    $('#state').val(data.state);
+					$('#StateName').val(data.state);
+					
+					if ($('#testDriveForm.formBookOnline').length) {
+						suppliesRange(data.state);
+					}
+                    
+                    //console.log("variant default select 1");
+                    if (qs == 15) {                        
+                        var Bookaride160 = window.location.pathname;
+                        if (Bookaride160 == "/Book-a-ride-160-2V") { 
+                            if ($('#variant').length) {
+                                selectvarient2V();
+                            }
+                        }
+                    }
+					
+					//console.log("Pin Datat:  "+ data.pincode);
+                    $('#state').closest('.group').find('label').addClass('labelUp');
+                    $('#city').closest('.group').find('label').addClass('labelUp');
+                    //$('#state').val(data.data.locality[2].id).trigger('change');
+                    $.get("https://api.latlong.in/v2/autocomplete.json?query=" + data.state + "&access_token=" + token + "",
+                    function (data) {
+                        var o = data.data[0];
+						//if ( o != undefined ){
+							$('#stateId').val((data.data[0]).geo);
+							// $('#state').val((data.data[0]).geo);
+							//console.log("state postion1:  "+(data.data[0]).geo);
+						//}
+                    });	
+					$('#location-error').hide();					
+					if ($('.btoDealer').length) { 
+						$(".btoDealer #localityPlaceHolder").trigger('change'); 
+					}
+					/*
+                    $("#stateDrp > option").each(function () {
+                        if (this.value == data.data.locality[2].id) {
+
+                            $('#stateDrp').val(data.data.locality[2].id);
+
+                            $('#stateDrp').trigger('change');
+
+                            return false;
+                        }
+                    });
+                    $("#stateDrpHomePage > option").each(function () {
+
+                        if (this.value == data.data.locality[2].id) {
+                            $('#stateDrpHomePage').val(data.data.locality[2].id);
+
+                            $('#stateDrpHomePage').trigger('change');
+
+                            return false;
+                        }
+                    });
+					*/
+                });
+
+        });
+}
+
+function showErrorGeoLocation(error) {
+  switch(error.code) {
+    case error.PERMISSION_DENIED:
+		$('#location-error').fadeIn();
+		//alert("User denied the request for Geolocation.");
+		break;
+    case error.POSITION_UNAVAILABLE:
+		alert("Location information is unavailable.");
+		break;
+    case error.TIMEOUT:
+		alert("The request to get user location timed out.");
+		break;
+    case error.UNKNOWN_ERROR:
+		alert("An unknown error occurred.");
+		break;
+  }
+}
+var localityPincode;
+$(function () {
+    var token = "";
+    var getData = function (request, response) {
+        $.post("https://api.latlong.in/oauth/token",
+            {
+                grant_type: "client_credentials",
+                client_id: "43b0f8c5434861a536ccccc9e74df151c33205f30fcadbad9b70c83abe54e38d",
+                client_secret: "1dab3d4661b8030984bd9f1b728497d7917e3f2130b7b0204487aeb34a8dd86b"
+            },
+
+            function (data) {
+                token = data.access_token;
+                $.get("https://api.latlong.in/v2/autocomplete.json?query=" + request.term + "&access_token=" + token + "",
+                    function (data) {
+                        var o = data.data;
+                        (o = $.map(o, function (t) {
+                            //console.log(t);
+                            if (t.name.trim())
+                                return { label: t.name, value: t.geo };
+                        }));
+                        response(o);
+                    });
+            });
+    };
+
+    var selectItem = function (event, ui) {
+        $("#vehicle").val('');
+        $("#localityPlaceHolder").val(ui.item.label);
+        $.get("https://api.latlong.in/v2/location_details.json?location=" + ui.item.value + "&access_token=" + token + "",
+            function (data) {
+               // $('#pincode').val(data.pincode).trigger('change');
+			    localityPincode = data.pincode;
+				//console.log('localityPincode = ' + localityPincode);
+                $('#pincode').val(data.pincode);
+                console.log('one');
+                $("#city").val(data.city)
+                $("#state").val(data.state);
+				
+                //console.log ("variant default select 2");
+                $('#variant').selectvarient2V();
+                
+                if ($('#vinCluster').length) {
+                    showStateCitylabels();
+                }
+				if ($('#testDriveForm.formBookOnline').length) {
+					suppliesRange(data.state);
+				}
+                $.get("https://api.latlong.in/v2/autocomplete.json?query=" + data.state + "&access_token=" + token + "",
+                    function (data) {
+                        var o = data.data[0];
+                        $('#stateId').val((data.data[0]).geo);
+						//$("#state").val((data.data[0]).geo);
+						//console.log("state postion2:  "+(data.data[0]).geo);
+                    });
+                $('#state').closest('.group').find('label').addClass('labelUp');
+                $('#city').closest('.group').find('label').addClass('labelUp');
+            });
+        return false;
+    }
+
+    $("#localityPlaceHolder").autocomplete({
+        source: getData,
+        select: selectItem,
+        minLength: 3,
+        change: function () {
+            //$("#pincode").val("").css("display", 2);
+        }
+    });
+	
+	$("#localityPlaceHolder").on("keyup change", function(e) {
+		$("#location-error").fadeOut(); 
+	});
+});
+$(document).ready(function () {
+    $("#vehicle").change(function () {
+
+        var vehicleId = $(this).val();
+
+        $("#variant").empty();
+        $("#color").empty();
+        $("#price").val('');
+
+        $('#VehicleSelectedName').val('');
+        $('#VariantName').val('');
+        $('#ColorName').val('');
+
+       // $('#pincode').val('');
+        if ($('#dealer').has('option').length > 0) {
+            clearDealerList();
+        }
+
+        var dataval = $('#vehicle option:selected').attr('data-vehicleid');
+        $('#vehicleSelected').val(dataval);
+
+        $.getJSON("api/getVariant", { vehicle: vehicleId },
+            function (data) {
+                var select = $("#variant");
+                select.empty();
+                select.append($('<option>', {
+                    value: 0,
+                    text: "Select Variant"
+                }));
+                data = JSON.parse(data);
+                //alert(data);
+                $.each(data, function (index, itemData) {
+                    select.append($('<option>', {
+                        value: itemData.VariantValue,
+                        text: itemData.VariantName
+                    }));
+                });
+            });
+			// TVS Raider
+            if (vehicleId == 116 ) {
+                setTimeout(function(){
+                    $("#variant option[value='204']").remove();
+                }, 500);
+            }
+			
+			// TVS Raider
+			if (vehicleId == 116 ) {
+				setTimeout(function(){
+					$("#variant option[value='204']").remove();
+				}, 500);
+			}
+           
+			// Apache RR 310
+			if (vehicleId === '101') {
+				$('#state').change(function(){
+					if ( $('#vehicle').val()  === '101') {
+						// Andhra Pradesh
+						if ($(this).val() === '420000003') {
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){  
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-150']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-29']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-47']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-48']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-75']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-76']").parent().addClass('shownState'); 
+									$(this).find("a[id='bs-select-2-120']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-141']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-154']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	 
+							}, 600)
+						}
+						
+						// Telangana  
+						if ($(this).val() === '420000035') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates');   
+									$(this).find("a[id='bs-select-2-25']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Chhattisgarh
+						if ($(this).val() === '420000036') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-28']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-29']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Rajasthan
+						if ($(this).val() === '420000012') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-65']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-66']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-91']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-77']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-172']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-173']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-156']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-156']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-32']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-33']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-5']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-6']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Punjab
+						if ($(this).val() === '420000024') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-28']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-29']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-10']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-1']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-2']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-22']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-23']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Haryana
+						if ($(this).val() === '420000010') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-15']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-50']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-51']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-18']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Jharkhand
+						if ($(this).val() === '420000017') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-79']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-80']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-44']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-21']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-22']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-19']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-20']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-22']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Assam
+						if ($(this).val() === '420000013') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-23']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-3']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-63']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// West Bengal
+						if ($(this).val() === '420000015') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates');  
+									$(this).find("a[id='bs-select-2-58']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-2']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-87']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-88']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-94']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-43']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-107']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-25']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-25']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-25']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-25']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Orissa
+						if ($(this).val() === '420000019') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-29']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-117']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-120']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-121']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-16']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-26']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-34']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-35']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Bihar
+						if ($(this).val() === '420000014') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates');  
+									$(this).find("a[id='bs-select-2-37']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-77']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-153']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-154']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-134']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-135']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-180']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-162']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-153']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-154']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Chandigarh
+						if ($(this).val() === '420000037') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									//$(this).addClass('hideStates'); 
+									//$(this).find("a[id='bs-select-2-25']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Delhi
+						if ($(this).val() === '420000006') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									//$(this).addClass('hideStates'); 
+									//$(this).find("a[id='bs-select-2-25']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Gujarat
+						if ($(this).val() === '420000018') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-0']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-1']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-74']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-75']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-83']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-31']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-13']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-14']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Karnataka
+						if ($(this).val() === '420000001') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-16']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-24']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-11']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-92']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-85']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-34']").parent().addClass('shownState');
+								}); 
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Kerala
+						if ($(this).val() === '420000005') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-11']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-63']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-64']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-1']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-00']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-00']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-00']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Maharastra
+						if ($(this).val() === '420000004') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-96']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-97']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-149']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-150']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-1']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-20']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-188']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-189']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-122']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-123']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-120']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Madhya Pradesh
+						if ($(this).val() === '420000016') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-66']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-67']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-168']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-169']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-75']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-76']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-43']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-44']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Tamil Nadu
+						if ($(this).val() === '420000002') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-19']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-20']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-197']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-25']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-133']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-134']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-174']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-75']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Uttar Pradesh
+						if ($(this).val() === '420000011') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-140']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-290']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-291']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-7']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-16']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-36']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-131']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-72']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-203']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-204']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-203']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-98']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-219']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-107']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-188']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-189']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						// Manipur
+						if ($(this).val() === '420000030') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-1']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Himachal Pradesh
+						if ($(this).val() === '420000020') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-28']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-29']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+						// Uttarakhand
+						if ($(this).val() === '420000025') { 
+							setTimeout(function(){
+								var citiesUL = $(document).find('#city').closest('.bootstrap-select').find('.dropdown-menu.inner');
+								citiesUL.find('li').each(function (){
+									$(this).addClass('hideStates'); 
+									$(this).find("a[id='bs-select-2-21']").parent().addClass('shownState');
+									$(this).find("a[id='bs-select-2-6']").parent().addClass('shownState');
+								});
+							},1000)
+						}else {
+							setTimeout(function(){
+								$("#city").selectpicker("refresh");	
+							}, 600)
+						}
+						
+					} 
+				});
+				
+			} 
+			
+       
+
+       // $('#state').val('');
+       // $('#city').val('');
+        // TVS NTORQ 125 Yellow Race Edition - Ends
+
+
+    });
+
+    $("#variant").change(function () {
+
+        var vehicleId = $('#vehicle').val();
+        var variantId = $(this).val();
+		
+        $("#color").val('');
+        $("#price").val('');
+
+        $('#ColorName').val('');
+
+        $.getJSON("api/getColors", { vehicle: vehicleId, variant: variantId },
+            function (data) {
+                //alert(data);
+                var select = $("#color");
+                select.empty();
+                select.append($('<option>', {
+                    value: 0,
+                    text: "Select Color"
+                }));
+                data = JSON.parse(data);
+                //alert(data);
+                $.each(data, function (index, itemData) {
+                    select.append($('<option>', {
+                        value: itemData.ColorCode,
+                        text: itemData.Color
+                    }));
+                });
+
+                // TVS Sport - Variant is Kick Start / Spoke wheels -> Show states Rajasthan, UP and Uttarakhand
+				if (variantId === '212') { 
+					$('#color').change(function(){
+						var colorVal = $(this).val();
+						if (colorVal === '304' || colorVal === '305'){
+							if ( $('#variant').val() === '212' ) {
+								setTimeout(function(){
+									var stateUL = $(document).find('#state').closest('.bootstrap-select').find('.dropdown-menu.inner');
+									stateUL.find('li').each(function (){
+										$(this).addClass('hideStates'); 
+										$(this).find("a[id='bs-select-1-27']").parent().addClass('shownState');
+										$(this).find("a[id='bs-select-1-31']").parent().addClass('shownState');
+										$(this).find("a[id='bs-select-1-32']").parent().addClass('shownState');});
+								},500)
+							}else {
+								setTimeout(function(){
+									$("#state").selectpicker("refresh");	
+								}, 600)
+							}
+							
+						}else {
+							setTimeout(function(){
+								$("#state").selectpicker("refresh");	
+							}, 600)
+						}
+						
+					}); 
+					
+					$('#state').change(function(){
+						setTimeout(function(){
+							var stateUL = $(document).find('#state').closest('.bootstrap-select').find('.dropdown-menu.inner');
+							stateUL.find('li').each(function (){
+								$(this).addClass('hideStates'); 
+								$(this).find("a[id='bs-select-1-27']").parent().addClass('shownState');
+								$(this).find("a[id='bs-select-1-31']").parent().addClass('shownState');
+								$(this).find("a[id='bs-select-1-32']").parent().addClass('shownState');
+							});
+						},1000)
+					});
+				}else {
+					setTimeout(function(){
+						$("#state").selectpicker("refresh");	
+					}, 600)			
+				}
+				
+				// Scooty Pep+ - Mudhal Kaadhal Edition -> Show states Puducherry and Tamil Nadu
+				if (variantId === '231') { 
+					$('#color').change(function(){
+						var colorVal = $(this).val();
+						if (colorVal === '366'){
+							if ( $('#variant').val() === '231' ) {
+								setTimeout(function(){
+									var stateUL = $(document).find('#state').closest('.bootstrap-select').find('.dropdown-menu.inner');
+									stateUL.find('li').each(function (){
+										$(this).addClass('hideStates'); 
+										$(this).find("a[id='bs-select-1-25']").parent().addClass('shownState');
+										$(this).find("a[id='bs-select-1-28']").parent().addClass('shownState');
+									});
+								},500)
+							}else {
+								setTimeout(function(){
+									$("#state").selectpicker("refresh");	
+								}, 600)
+							}
+							
+						}else {
+							setTimeout(function(){
+								$("#state").selectpicker("refresh");	
+							}, 600)
+						}
+						
+					}); 
+					$('#state').change(function(){
+						setTimeout(function(){
+							var stateUL = $(document).find('#state').closest('.bootstrap-select').find('.dropdown-menu.inner');
+							stateUL.find('li').each(function (){
+								$(this).addClass('hideStates'); 
+								$(this).find("a[id='bs-select-1-25']").parent().addClass('shownState');
+								$(this).find("a[id='bs-select-1-28']").parent().addClass('shownState');
+							});
+						},1000)
+					});
+				}else {
+					setTimeout(function(){
+						$("#state").selectpicker("refresh");	
+					}, 600)			
+				}
+				
+                /*
+                if (variantId === '213' || variantId === '218') {
+                    // console.log("alloy");
+                    $('#color option').each(function () {
+                        if ($(this).val() === '352') {
+                            $(this).hide();
+                        }
+                    });
+                }
+
+                // TVS Sport - Variant is Kick Start / Spoke wheels show only Rajasthan and UP States
+                $('#state option').show();
+                if (variantId === '212') {
+                    $('#state').val('');
+                    $('#state option').each(function () {
+                        $(this).hide();
+                        if ($(this).val() === '420000011' || $(this).val() === '420000012' || $(this).val() === '420000025') {
+                            $(this).show();
+                        }
+                    });
+                } else {
+                    $('#state option').show();
+                }
+                */
+
+                //Ntorq - Super Squad
+                /*
+                if (variantId === '227') {
+                    console.log('hii');
+                    $('#state').val('');
+                    $('#state option').each(function () {
+                        var $this = $(this);
+                        var optionVal = $this.val();
+                        $this.hide();
+                        if (optionVal === '420000015' || optionVal === '420000005' || optionVal === "420000027" || optionVal === "420000030"  || optionVal === "420000028"  || optionVal === "420000029"  || optionVal === "420000023"  || optionVal === "420000001"  || optionVal === "420000004"  || optionVal === "420000006" ) {
+                            $this.show(); 
+                        }
+                    });
+                } else {
+                    $('#state option').show();
+                }
+                */
+
+
+            });
+			
+			
+			
+			 $("#pincode").trigger('change');
+			
+			
+    });
+    $("#color").change(function () {
+       $('#pincode').trigger('change');
+        vehiclePrice();
+
+       // $('#state').val('');
+       // $('#city').val('');
+        setTimeout(function () {
+            $("#state").selectpicker("refresh");
+            $("#city").selectpicker("refresh");
+        }, 200)
+
+
+    });
+
+
+
+    var filedType, clientID, clientSecret, dearlerListAPI;
+    $('.bofForm #pincode.bof').attr("disabled", true);
+    $('.bofForm #vehicle').change(function () {
+        var vehicleVal = $('.bofForm #vehicle').val();
+        if (vehicleVal != "") {
+            $('.bofForm #pincode.bof').attr("disabled", false);
+            filedType = $('.bofForm #vehicle').find(':selected').data('type');
+        } else {
+            $('.bofForm #pincode.bof').attr("disabled", true);
+        }
+    });
+
+
+    $('.vehicleSelectBoxListing ul > li > a').on('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+       // $('#pincode').val('');
+        if ($('#dealer').has('option').length > 0) {
+            clearDealerList();
+        }
+
+        var vehicleInputValue = $('#vehicleSelectBox').val();
+        if (vehicleInputValue != "") {
+            $('.bofForm #pincode.bof').attr("disabled", false);
+            filedType = $(this).data('type');
+        } else {
+            $('.bofForm #pincode.bof').attr("disabled", true);
+        }
+		 var selectedVehicleValue = $('#vehicleSelectBoxName').val();
+		$.getJSON("api/getVariantList", { vehicle: selectedVehicleValue },
+            function (data) {
+				var select = $("#variant");
+                select.empty();
+                select.append($('<option>', {
+                    value: 0,
+                    text: "Select Variant"
+                }));
+                data = JSON.parse(data);
+                //alert(data);
+                $.each(data, function (index, itemData) {
+                    select.append($('<option>', {
+                        value: itemData.VariantName,
+                        text: itemData.VariantName
+                    }));
+    });
+            });															
+    });
+	
+	if ( $('#bookVehicleForm, #vinCluster').length ) {
+		if ( $('#dataTypeRR').length ) {
+			filedType = $('#dataTypeRR').val();
+			//console.log('filedType = ' + filedType);
+		}
+		
+	}
+
+	$(document).on('change blur','#pincode, .btoDealer #localityPlaceHolder', function(){ 
+        //console.log("TYpe = " + filedType);
+		
+		if ( $('.paymentOpts').length ) {
+			$(".dealersOnPin .paymentOpts").empty();
+			$('#paymentOpt-error').hide();
+		}
+		
+		if (filedType === 'RR' || filedType == "RRcluster") {
+            clientID = "2e7ca90fa684ebe55727d25110647c5ab49dee193620abb04a3b50ba71fc9cc8";
+            clientSecret = "246a38523001636cdd7b43f90b6d2e7b4ae887f7b8354cec48ecc310d4f19349";
+        } else {
+            clientID = "bd2c1166e2275cd651b256fcee41486aacf3bcdaad98eb13947d70314e10d223";
+            clientSecret = "b7ec91eb8b89b43df70d73afe0b5be78bbbf743dee65c2c04a15d58bf8040036";
+        }
+		$('.errorMsgPinCode').hide();
+        //console.log(clientID + " = " +clientSecret);
+
+        $.post("https://api.latlong.in/oauth/token",
+            {
+                grant_type: "client_credentials",
+                client_id: clientID,
+                client_secret: clientSecret,
+            },
+
+            function (data) {
+                var token = data.access_token;
+               // var pinCode = $("#pincode").val();
+				var localityPincodeOnLoad = $('#localityPlaceHolder').val(); // on window load we get the pincode
+				//console.log('IS numerica or not = ' + $.isNumeric(localityPincodeOnLoad));
+				var llpinLoadChangeDetect = $.isNumeric(localityPincodeOnLoad) ? localityPincodeOnLoad : localityPincode // localityPincodeOnLoad comes on window load while localityPincode comes on change event
+				
+				//console.log(localityPincodeOnLoad, localityPincode);
+				
+				var pinCode = $('.btoDealer #localityPlaceHolder').length ? llpinLoadChangeDetect : $("#pincode").val();
+				//var pinCodeLocality = $("#localityPlaceHolder").val();
+				//console.log(pinCodeLocality);
+				//console.log("pinCode New = " + pinCode);
+
+                if (filedType === 'RR') {
+                    dearlerListAPI = "https://api.latlong.in/v2/brands/370/find.json?query=" + pinCode + "&sure_search=true&access_token=" + token + ""
+					
+                }else if (filedType === 'RRcluster') {
+                    dearlerListAPI = "https://api.latlong.in/v2/brands/370/find.json?query=" + pinCode + "&access_token=" + token + ""
+					
+                } else {
+					if ( $('.testrideFinal').length ) {
+						
+						if ( $('#aBTestingVariant').length  && $('#aBTestingVariant').val()=="2") {
+						
+						dearlerListAPI = "https://api.latlong.in/v2/brands/301/search_with_disable.json?query=" + pinCode + "&sure_search=true&access_token=" + token + ""
+							
+						}
+						else
+						{
+							dearlerListAPI = "https://api.latlong.in/v2/brands/301/find.json?query=" + pinCode + "&category=300&sure_search=true&access_token=" + token + ""
+					
+						}
+						
+						
+						//dearlerListAPI = "https://api.latlong.in/v2/brands/301/search_with_disable.json?query=" + pinCode + "&sure_search=true&access_token=" + token + ""
+						
+						
+						
+						//dearlerListAPI = "https://api.latlong.in/v2/brands/301/search_with_disable.json?query=" + pinCode + "&sure_search=true&access_token=" + token + ""
+							
+						
+										 
+						//dearlerListAPI = "https://api.latlong.in/v2/brands/301/search_with_disable.json?query=" + pinCode + "&sure_search=true&access_token=" + token + ""
+						
+					}else {
+						dearlerListAPI = "https://api.latlong.in/v2/brands/301/find.json?query=" + pinCode + "&category=300&sure_search=true&access_token=" + token + ""
+					}
+                }
+				
+
+                $.get(dearlerListAPI,
+
+                    function (data) {
+                        //console.log(data); 
+                        if ( $('.formBookVehicle').length ) {    
+                            $(".dealersOnPin .paymentOpts").empty();
+                            $.each(data.stores, function (i, v) {     
+                               // alert('if = ' + v.address)
+                                var dealerOption = '<label class="checkboxCont checkToRadio" data-dealerId="' + v.dealer_id + '" data-dealerName="' + v.wp_name + '" data-dealerContact="' + v.phone_no + '" data-dealerAddress="' + v.address + '" data-dealerEmail="' + v.email_id + '" data-dealercode="'+v.dealer_code+'"><p class="dlrTxt">' + v.wp_name + '<br><strong>' + v.address + '</strong></p><input type="radio" name="paymentOpt" value="' + i + '"><span class="checkmark dlrcheck"></span><span class="distaCnt"><img src="/assets/img/dealer-location-g.png" alt="Apply Process"> Distance :' + v.distance + ' KM (Approx)</span></label>';
+                                $(".dealersOnPin .paymentOpts").append(dealerOption);  
+                                $(".dealersOnPin .paymentOpts .checkboxCont").eq(0).addClass('active');
+                                $('.paymentOpts .checkToRadio:first-child input[type="radio"]').prop('checked', true);
+								
+								equalheight('.desktop .clusterVin .checkboxCont.checkToRadio');
+                            });
+                        }else {
+                            $("#dealer").empty();
+                            $.each(data.stores, function (i, v) {
+                                $("#dealer").append($("<option data-address='" + v.address + "' data-contact=" + v.phone_no + " data-email=" + v.email_id + "></option>").val(v.dealer_id).html(v.wp_name));
+                                $("#dealer").append($("<option disabled></option>").html(v.state + ',' + v.address));
+    
+                                if (i == 0) {
+                                    $('#DealerEmail').val($('#dealer option:selected').attr('data-email'));
+                                    $('#DealerContact').val($('#dealer option:selected').attr('data-contact'));
+                                    $('#DealerAddress').val($('#dealer option:selected').attr('data-address'));
+                                    $('#DealerName').val(v.wp_name);
+                                }
+                            });
+                            $("#dealer").selectmenu({
+                                width: '100%',
+                                change: function (event, ui) {
+                                    // alert($('#dealer option:selected').attr('data-address'));
+                                    $('#DealerEmail').val($('#dealer option:selected').attr('data-email'));
+                                    $('#DealerContact').val($('#dealer option:selected').attr('data-contact'));
+                                    $('#DealerAddress').val($('#dealer option:selected').attr('data-address'));
+                                    var one = $('#dealer option:selected').text();
+                                    $('#DealerName').val(one);
+                                    $('#DealerName').val();
+                                }
+                            });
+                            $('#dealer').selectmenu('refresh', true);
+                        }
+                    })
+					.fail(function() {
+						//console.log('hii');
+						//$('#validPin-error').fadeIn();
+                    });
+            });
+    });
+	
+    // OTB - Vehicle Booking
+    $("#bookVehicleForm").on('click', '#submitBookVehicle', function () {
+         
+        if ( $("#bookVehicleForm").valid() ) { 
+  
+			var stateVal = $('#state').val();
+			var stateName = $('#state option:selected').text();
+			var cityVal = $('#city').val();
+			var pinCode = $('#pincode').val();
+            var selectedDealer = $('.checkboxCont.checkToRadio.active');
+            var selectedDealerID = selectedDealer.data('dealerid');
+            var selectedDealerName = selectedDealer.data('dealername');
+            var selectedDealerContact = selectedDealer.data('dealercontact');
+            var selectedDealerAddress = selectedDealer.data('dealeraddress');
+            var selectedDealerEmail = selectedDealer.data('dealeremail');
+			
+			$('#selectedPincode').val(pinCode);
+			$('#selectedStateCode').val(stateVal);
+			$('#selectedStateName').val(stateName);
+			$('#selectedCity').val(cityVal);
+            $('#dealerId').val(selectedDealerID); 
+            $('#dealerName').val(selectedDealerName);
+            $('#dealerContact').val(selectedDealerContact);
+            $('#dealerAddress').val(selectedDealerAddress); 
+            $('#dealerEmail').val(selectedDealerEmail); 
+			
+			console.log('validtion oneee');
+			if ($('.paymentOpts').text().trim() != "") {
+				$('.errorMsgPinCode').hide();
+				$('#submitBookVehicle').attr('type','submit');
+			}else {
+				$('.errorMsgPinCode').show();
+			}
+			
+			//return false; 
+        }
+    });
+
+	
+    var $select1 = $('#state'), 
+        $select2 = $('#city'),
+        $options = $select2.find('option');
+
+	
+    $("#state").change(function () {
+		$("#state").selectpicker("refresh");
+		$("#city").selectpicker("refresh");
+		
+		if ( $('.brand-price.rtr').length ) {
+			$select2.html($options.filter('[data-state="' + this.value + '"]'));
+			$("#city option:first").attr('selected', 'selected');
+		}
+			
+		if($(".formBookOnline").length>0) {
+			vehiclePrice();
+		}
+        clearDealerList();
+    });
+	
+	
+    $("#testDriveForm .btnReset").on('click', function () { 
+		$('.errorMsgOPT, .otpdtl, .mobnum1, .resendOTPMsg').hide();
+        $('#requestOTP, #resendOtpTd, #requestOtpBO, #resendOtpBO').removeClass('hilight');
+        setTimeout(function () {
+            $("#state").selectpicker("refresh");
+            $("#city").selectpicker("refresh");
+            //$('input, select').attr('value', '');
+			$('input:not(.ctaDetect), select').attr('value', '');
+			
+        }, 200)
+        clearDealerList();
+		
+		if (qs) {
+			setTimeout(function () {
+				vehicleSelectBox.val(vehicleSelectBoxVal);
+				vehicleSelectBoxName.val(vehicleSelectBoxNameVal);
+				vehicleSelectBoxBigImg.val(vehicleSelectBoxBigImgVal);
+			}, 200)
+		}
+		
+    });
+	
+	if ($("#selectDetails").length) {
+		$("#selectDetails").selectmenu({
+			width: '100%'
+		});
+	}
+    
+
+
+    $('.applyCTA').on('click', function (e) {
+        e.preventDefault();
+        //$('button[name="payBookingAmount"]').trigger('click');
+        var opt = $('#smsotp');
+        if (opt.val() == "" || opt.hasClass('error')) {
+            //console.log('ine');
+            $('.payBooking').trigger('click');
+            $(this).removeAttr('data-toggle');
+            $(this).removeAttr('data-target');
+        } else {
+            //console.log('out');
+            $(this).attr('data-toggle', 'modal');
+            $(this).attr('data-target', '#applyFinance');
+        }
+
+    });
+
+
+    var btnProceed = $('.btn-proceed');
+    var procssedURL = btnProceed.data('url');
+
+    $('#applyFinance input[type="checkbox"]').click(function () {
+        if ($(this).is(":checked")) {
+            btnProceed.removeAttr("disabled");
+            // btnProceed.attr('data-dismiss','modal');
+            btnProceed.attr('href', procssedURL);
+            // btnProceed.click(function () {
+            //   $('.qa-form').hide();
+            //   $('.applyProcessWrap').show();
+            // });
+        }
+        else if ($(this).is(":not(:checked)")) {
+            btnProceed.removeAttr("data-dismiss");
+            btnProceed.attr('disabled', 'disabled');
+            btnProceed.attr('href', '#');
+
+
+            // btnProceed.click(function () {
+            //   $('.qa-form').show();
+            //   $('.applyProcessWrap').hide();
+            // });
+        }
+    });
+
+
+    var $radioButtons = $('.paymentOpts .checkToRadio input[type="radio"]');
+    //$radioButtons.click(function () {
+    $('.paymentOpts').on('click', '.checkToRadio input[type="radio"]', function () {
+        $('.paymentOpts .checkToRadio input[type="radio"]').each(function () {
+            $(this).parent().toggleClass('active', this.checked); 
+        });
+
+        var radioVal = $(this).val(); 
+        if (radioVal == 1) {
+            $("#homeDelivery").modal('show');
+			$('#noCostEMI').prop("disabled", false);
+        }else {
+			$('#noCostEMI').prop("disabled", true);
+			$('#noCostEMI').prop('checked', false);
+		}
+		
+        $('#selectedPaymentOpt').val(radioVal);
+		
+		if ($('.hdnPaymentAmount').length) {
+			var sctedFinalAmount = $(this).closest('.checkboxCont').find('.hdnPaymentAmount').val();
+			var sctedFinalAmountNoSpace = sctedFinalAmount.split(" ").join("");
+			$('#selectedPaymentAmount').val(sctedFinalAmountNoSpace);
+		}
+    });
+
+    $('#homeDelivery').on('click', '.btn', function () {
+        var deliveryPref = $(this).data('delivery');
+        $('#deliveryPreference').val(deliveryPref);
+    });
+
+
+    $('#testDriveForm.testrideFinal').on('click', '#requestOTP', function (e) {
+        e.preventDefault();
+        var phoneVal = $('#phone').val();
+        $(this).removeClass("hilight");
+        $.ajax({
+            url: '/api/GenerateOTP',
+            type: "POST",
+            data: {
+                phoneNumber: phoneVal
+            },
+            success: function (result) {
+                var a = result.Success;
+                if (a === true) {
+                    $('.mobnum').text(phoneVal);
+                    $('.otpdtl').show();
+
+                    setTimeout(function () {
+                        $('.disabledOTP').addClass('hilight');
+                    }, 30000);
+                }
+            },
+            error: function (result) {
+                console.log('Success Result 1 = ' + result);
+            }
+        });
+    });
+
+
+    $('#testDriveForm.testrideFinal').on('click', '#resendOtpTd', function (e) {
+        e.preventDefault();
+        var phoneVal = $('#phone').val();
+        $(this).removeClass("hilight");
+        $.ajax({
+            url: '/api/GenerateOTP',
+            type: "POST",
+            data: {
+                phoneNumber: phoneVal
+            },
+            success: function (result) {
+                var a = result.Success;
+                if (a === true) {
+                    console.log('resend opt - success')
+                    $('.mobnum1').text(phoneVal);
+                    $('.otpdt2').show();
+
+                    setTimeout(function () {
+                        $('.disabledOTP').addClass('hilight');
+                    }, 30000);
+                }
+            },
+            error: function (result) {
+                console.log('Success Result 1 = ' + result);
+            }
+        });
+    });
+
+
+    $('.testrideFinal').on('click', '#submitTestRide', function (e) {
+        e.preventDefault();
+		//console.log("In Test From = " + qs); 
+        //if (!$("#testDriveForm").valid()) { return false; }
+        if ($("#testDriveForm.testrideFinal").valid()) {
+			
+            //console.log('if validate');
+			
+			if (qs == 14) { // if - Ntorq New 14
+				console.log('yesss... 14');
+				var validDealers = ["10241", "10731", "11471", "11641", "10724", "10278", "11395", "13053", "10279", "11900", "10242", "10252", "11358", "20176", "11568", "11775", "11403", "10120", "10093", "10814", "11279", "13113", "13114", "10970", "11625", "10678", "11560", "12181", "20002", "10007", "11465", "11597", "12160", "13085", "10671", "10778", "11746", "12108", "13038", "10254", "10769", "11269", "11737", "11739", "11839", "12012", "10746", "10747", "10897", "10957", "11812", "11907", "12097", "10713", "10969", "10998", "11240", "11840", "11943", "11973", "12081", "10689", "10853", "13054", "11706", "11720", "11992", "80124", "10258", "10688", "11033", "11050", "11067", "11697", "11860", "11911", "10263", "10903", "11588", "11732", "80148", "11653", "10864", "11307", "10226", "10230", "10237", "10247", "11163", "12130", "10264", "10990"];
+				var selectedDealerVal = $('#dealer').val();
+
+				//console.log('Vaidd = ' + validDealers.includes(selectedDealerVal) );
+				if (!(validDealers.includes(selectedDealerVal)) ) { 
+					//alert('Dealer is not maching');
+					$('.dearlerErrMsg').show();
+					return false; 
+				}else {
+					//alert('Dealer maching');
+				}
+			
+				$('.dearlerErrMsg').hide();
+			}
+			
+            var otpVal = $('#userotpNumber').val();
+            console.log('otp val = ' + otpVal);
+            $.ajax({
+                url: '/api/VerifyTestARideOTP',
+                type: "POST",
+                data: {
+                    mobileOtp: {
+                        SmsOtp: otpVal
+                    }
+                },
+                success: function (result) {
+                    var a = result.Success;
+                    if (a === true) {
+                        console.log('in true');
+                        $('.errorMsgOPT').hide();
+
+                        console.log('in true');
+                        $('#testDriveForm').attr('action', 'api/bookaridesuccess');
+                        $("#testDriveForm").submit();
+
+                    } else {
+                        console.log('main elsein false');
+                        //alert('OTP is wrong');
+                        $('.errorMsgOPT').show();
+                    }
+                },
+                error: function (result) {
+                    console.log('resedn otp= ' + result);
+                }
+            });
+
+        } else {
+            console.log('eles validate');
+            //alert('OTP is wrong - 2');
+        }
+
+
+    });
+
+    // implemented condition for book a ride corporate page	
+
+    $('#testrideFinalForCorporate.testrideFinalForCorporate').on('click', '.otpoption', function (e) {
+        e.preventDefault();
+        var phoneVal = $('#phone').val();
+        $.ajax({
+            url: '/api/GenerateOTP',
+            type: "POST",
+            data: {
+                phoneNumber: phoneVal
+            },
+            success: function (result) {
+                var a = result.Success;
+                if (a === true) {
+                    $('.mobnum').text(phoneVal);
+                    $('.otpdtl').show();
+
+                    setTimeout(function () {
+                        $('.disabledOTP').addClass('hilight');
+                    }, 30000);
+                }
+            },
+            error: function (result) {
+                console.log('Success Result 1 = ' + result);
+            }
+        });
+    });
+
+
+    $('#testrideFinalForCorporate.testrideFinalForCorporate').on('click', '#resendOtpTd', function (e) {
+        e.preventDefault();
+        var phoneVal = $('#phone').val();
+        $.ajax({
+            url: '/api/GenerateOTP',
+            type: "POST",
+            data: {
+                phoneNumber: phoneVal
+            },
+            success: function (result) {
+                var a = result.Success;
+                if (a === true) {
+                    console.log('resend opt - success')
+                    $('.mobnum1').text(phoneVal);
+                    $('.otpdt2').show();
+                }
+            },
+            error: function (result) {
+                console.log('Success Result 1 = ' + result);
+            }
+        });
+    });
+
+
+    // implemented condition for book a ride corporate page
+
+
+    $('.testrideFinalForCorporate').on('click', '#submitTestRide', function (e) {
+
+        //  $('#testrideFinalForCorporate').attr('action', 'api/bookaridesuccessforcorporate');
+        // $("#testrideFinalForCorporate").submit();
+
+
+        e.preventDefault();
+        if (!$("#testrideFinalForCorporate").valid()) { return false; }
+
+        // alert("hello");
+        if ($("#testrideFinalForCorporate.testrideFinalForCorporate").valid()) {
+
+            console.log('if validate');
+
+            var otpVal = $('#userotpNumber').val();
+            console.log('otp val = ' + otpVal);
+            $.ajax({
+                url: '/api/VerifyTestARideOTP',
+                type: "POST",
+                data: {
+                    mobileOtp: {
+                        SmsOtp: otpVal
+                    }
+                },
+                success: function (result) {
+                    var a = result.Success;
+                    if (a === true) {
+                        console.log('in true');
+                        $('.errorMsgOPT').hide();
+
+                        console.log('in true');
+                        $('#testrideFinalForCorporate').attr('action', 'api/bookaridesuccessforcorporate');
+                        $("#testrideFinalForCorporate").submit();
+
+                    } else {
+                        console.log('main elsein false');
+                        //alert('OTP is wrong');
+                        $('.errorMsgOPT').show();
+                    }
+                },
+                error: function (result) {
+                    console.log('resedn otp= ' + result);
+                }
+            });
+
+        } else {
+            console.log('eles validate');
+            //alert('OTP is wrong - 2');
+        }
+
+
+    });
+
+	// Cluster book vehicle generate OTP
+	$('#vinCluster.formBookVehicle').on('click', '#requestOtpCluster', function (e) {
+        e.preventDefault();
+        var phoneVal = $('#phone').val();
+        $(this).removeClass("hilight");
+        $.ajax({
+            url: '/api/GenerateOTP',
+            type: "POST",
+            data: {
+                phoneNumber: phoneVal
+            },
+            success: function (result) {
+                var a = result.Success;
+                if (a === true) {
+                    $('.mobnum').text(phoneVal);
+                    $('.otpdtl').show();
+
+                    setTimeout(function () {
+                        $('.disabledOTP').addClass('hilight');
+                    }, 30000);
+                }
+            },
+            error: function (result) {
+                console.log('Success Result 1 = ' + result);
+            }
+        });
+    });
+	
+	// Cluster book vehicle re-generate otp 
+    $('#vinCluster.formBookVehicle').on('click', '#resendOtpTd', function (e) {
+        e.preventDefault();
+        var $thisEvent = $(this);
+        var phoneVal = $('#phone').val();
+        $thisEvent.removeClass("hilight");
+        $.ajax({
+            url: '/api/GenerateOTP',
+            type: "POST",
+            data: {
+                phoneNumber: phoneVal
+            },
+            success: function (result) {
+                var a = result.Success;
+                if (a === true) {
+                    console.log('resend opt - success');
+                    $thisEvent.closest('.group').find('.mobnum1').text(phoneVal);
+                    $thisEvent.closest('.group').find('.otpdt2').show();
+
+                    setTimeout(function () {
+                        $('.disabledOTP').addClass('hilight');
+                    }, 30000);
+                    return false;
+                }
+            },
+            error: function (result) {
+                console.log('Success Result 1 = ' + result);
+            }
+        });
+    });
+
+    // implement for generate otp for bookonline 20200915
+    $('#testDriveForm.formBookOnline').on('click', '#requestOtpBO', function (e) {
+        e.preventDefault();
+
+        var $thisEvent = $(this);
+        var phoneVal = $('#phone').val();
+        $thisEvent.removeClass("hilight");
+        $.ajax({
+            url: '/api/GenerateOTP',
+            type: "POST",
+            data: {
+                phoneNumber: phoneVal
+            },
+            success: function (result) {
+                var a = result.Success;
+                if (a === true) {
+                    $thisEvent.closest('.halfWidth').find('.mobnum').text(phoneVal);
+                    $thisEvent.closest('.halfWidth').find('.otpdtl').show();
+
+                    setTimeout(function () {
+                        $('.disabledOTP').addClass('hilight');
+                    }, 30000);
+                }
+            },
+            error: function (result) {
+                console.log('Success Result 1 = ' + result);
+            }
+        });
+    });
+
+    // implement for re-generate otp for bookonline 20200915
+    $('#testDriveForm.formBookOnline').on('click', '#resendOtpBO', function (e) {
+        e.preventDefault();
+        var $thisEvent = $(this);
+        var phoneVal = $('#phone').val();
+        $thisEvent.removeClass("hilight");
+        $.ajax({
+            url: '/api/GenerateOTP',
+            type: "POST",
+            data: {
+                phoneNumber: phoneVal
+            },
+            success: function (result) {
+                var a = result.Success;
+                if (a === true) {
+                    console.log('resend opt - success');
+                    $thisEvent.closest('.halfWidth').find('.mobnum1').text(phoneVal);
+                    $thisEvent.closest('.halfWidth').find('.otpdt2').show();
+
+                    setTimeout(function () {
+                        $('.disabledOTP').addClass('hilight');
+                    }, 30000);
+                    return false;
+                }
+            },
+            error: function (result) {
+                console.log('Success Result 1 = ' + result);
+            }
+        });
+    });
+
+    var checkstatusofPreFilldataForBookOnline = $("#WebSiteFlag");
+
+    //console.log('check status of object = ' + checkstatusofPreFilldataForBookOnline);
+
+    if ($('[name="WebSiteFlag"]').attr('id') == 'WebSiteFlag') {
+        //console.log("Yes web site flag!");
+        //const regex = "+";
+        var bookOnline = getCookieObject("BookOnline");
+
+        if (bookOnline != null && bookOnline != '') {
+            var array = bookOnline.split('&');
+            //console.log("My array => " + array);
+            var colorVal = '', colorName = '';
+            var variantVal = '', variantName = '';
+            var strdealername = '';
+            var dealerCode = '', dealerAdd = '', dealerContact = '', dealerEmail = '', dealerCity = '';
+
+            $('.otpoption.disabledOTP').addClass('hilight');
+
+            for (var i = 0; i < array.length; i++) {
+                if (array[i].split('=')[0] == "name") {
+                    $("#name").attr('value', array[i].split('=')[1]);
+                }
+                else if (array[i].split('=')[0] == "phone") {
+                    $("#phone").attr('value', array[i].split('=')[1]);
+                }
+                else if (array[i].split('=')[0] == "email") {
+                    $("#email").attr('value', array[i].split('=')[1]);
+                }
+                else if (array[i].split('=')[0] == "vehicle") {
+                    var a = array[i].split('=')[1];
+                    $("#vehicle").val(a);
+                    $("#vehicle option[value=a]").attr('selected', true);
+                }
+                else if (array[i].split('=')[0] == "StateName") {
+                    $("#state").attr('value', array[i].split('=')[1]);
+                    $("#StateName").attr('value', array[i].split('=')[1]);
+                }
+
+                else if (array[i].split('=')[0] == "pincode") {
+                    $('#pincode').removeAttr("disabled", false);
+                    $("#pincode").val(array[i].split('=')[1]);
+
+                    var pinval = $("#pincode").val();
+                    navigator.geolocation.watchPosition(function (position) {
+                        $("#pincode").val(pinval);
+                    });
+                }
+                else if (array[i].split('=')[0] == "price") {
+                    $("#price").attr('value', array[i].split('=')[1]);
+                }
+
+                // Values for Hidden fields
+                else if (array[i].split('=')[0] == "VehicleSelectedName") {
+                    $("#VehicleSelectedName").attr('value', array[i].split('=')[1]);
+                }
+                else if (array[i].split('=')[0] == "ColorName") {
+                    $("#ColorName").attr('value', array[i].split('=')[1]);
+                    colorName = array[i].split('=')[1];
+                }
+                else if (array[i].split('=')[0] == "color") {
+                    colorVal = array[i].split('=')[1];
+                }
+                else if (array[i].split('=')[0] == "VariantName") {
+                    $("#VariantName").attr('value', array[i].split('=')[1]);
+                    variantName = array[i].split('=')[1];
+                }
+                else if (array[i].split('=')[0] == "variant") {
+                    variantVal = array[i].split('=')[1];
+                }
+
+                else if (array[i].split('=')[0] == "state") {
+                    $("#state").val(array[i].split('=')[1]);
+
+                    var statVal = $("#state").val();
+                    navigator.geolocation.watchPosition(function (position) {
+                        $("#state").val(statVal);
+                    });
+                }
+                else if (array[i].split('=')[0] == "city") {
+                    var select = $("#city");
+                    select.empty();
+                    select.append($('<option>', { value: array[i].split('=')[1], text: array[i].split('=')[1] }));
+                    dealerCity = array[i].split('=')[1];
+                }
+                else if (array[i].split('=')[0] == "dealer") {
+                    dealerCode = array[i].split('=')[1];
+                }
+                else if (array[i].split('=')[0] == "DealerName") {
+                    $("#DealerName").attr('value', array[i].split('=')[1]);
+                    strdealername = array[i].split('=')[1];
+                }
+                else if (array[i].split('=')[0] == "DealerAddress") {
+                    $("#DealerAddress").attr('value', array[i].split('=')[1]);
+                    $("#hdnDelarAddress").attr('value', array[i].split('=')[1]);
+                    dealerAdd = array[i].split('=')[1];
+                }
+                else if (array[i].split('=')[0] == "DealerContact") {
+                    $("#DealerContact").attr('value', array[i].split('=')[1]);
+                    dealerContact = array[i].split('=')[1];
+                }
+                else if (array[i].split('=')[0] == "DealerEmail") {
+                    $("#DealerEmail").attr('value', array[i].split('=')[1]);
+                    dealerEmail = array[i].split('=')[1];
+                }
+                else if (array[i].split('=')[0] == "vehicleSelected") {
+                    $("#vehicleSelected").attr('value', array[i].split('=')[1]);
+                }
+                else if (array[i].split('=')[0] == "VehicleSelectedBigImg") {
+                    $("#VehicleSelectedBigImg").attr('value', array[i].split('=')[1]);
+                }
+                else if (array[i].split('=')[0] == "utm_source") {
+                    $("#utm_source").attr('value', array[i].split('=')[1]);
+                }
+                else if (array[i].split('=')[0] == "utm_medium") {
+                    $("#utm_medium").attr('value', array[i].split('=')[1]);
+                }
+                else if (array[i].split('=')[0] == "utm_campaign") {
+                    $("#utm_campaign").attr('value', array[i].split('=')[1]);
+                }
+                else if (array[i].split('=')[0] == "utm_term") {
+                    $("#utm_term").attr('value', array[i].split('=')[1]);
+                }
+                else if (array[i].split('=')[0] == "utm_content") {
+                    $("#utm_content").attr('value', array[i].split('=')[1]);
+                }
+                else if (array[i].split('=')[0] == "ModelPrice") {
+                    $("#ModelPrice").attr('value', array[i].split('=')[1]).replace(/(\d)(?=(\d\d)+\d$)/g, "$1 ");
+                    $('#TotalPrice').html(array[i].split('=')[1]).replace(/(\d)(?=(\d\d)+\d$)/g, "$1 ");
+                }
+                else if (array[i].split('=')[0] == "PartId") {
+                    $("#PartId").attr('value', array[i].split('=')[1]);
+                }
+                else if (array[i].split('=')[0] == "hdnDelarState") {
+                    $("#hdnDelarState").attr('value', array[i].split('=')[1]);
+                }
+                else if (array[i].split('=')[0] == "hdnDelarState") {
+                    $("#hdnDelarState").attr('value', array[i].split('=')[1]);
+                }
+            }
+
+            var select = $("#variant");
+            select.empty();
+            select.append($('<option>', { value: variantVal, text: variantName }));
+
+            var select = $("#color");
+            select.empty();
+            select.append($('<option>', { value: colorVal, text: colorName }));
+
+            $("#dealer").append($("<option data-address='" + dealerAdd + "' data-contact=" + dealerContact + " data-email=" + dealerEmail + "></option>").val(dealerCode).html(strdealername));
+            $("#dealer").append($("<option disabled></option>").html(dealerAdd));
+
+            navigator.geolocation.watchPosition(function (position) {
+                $("#dealer").append($("<option data-address='" + dealerAdd + "' data-contact=" + dealerContact + " data-email=" + dealerEmail + "></option>").val(dealerCode).html(strdealername));
+                $("#dealer").append($("<option disabled></option>").html(dealerAdd));
+
+                var select = $("#city");
+                select.empty();
+                select.append($('<option>', { value: dealerCity, text: dealerCity }));
+            });
+
+
+        }
+    }else {
+        //console.log("No have web site flag!");
+    }
+
+    if ($("#state").length > 0) {
+        $("#state").selectpicker();
+    }
+
+
+    setTimeout(function () {
+
+        if ($("#city").length > 0) {
+            $("#city").selectpicker();
+        }
+
+        var $spanHighlight = $("<span>", {
+            "class": "highlight",
+            // html: getTitle
+        });
+
+        var $spanBarline = $("<span>", {
+            "class": "bar-line",
+            // html: getTitle
+        });
+
+        $(".selPicker").parent().append($spanHighlight);
+        $(".selPicker").parent().append($spanBarline);
+
+
+        $(".selPicker").each(function () {
+            var getTitle = $(this).attr("title");
+            var $stateLabel = $("<label>", {
+                "class": "label-" + getTitle,
+                html: getTitle
+            });
+
+            $(this).parent().append($stateLabel);
+
+        });
+    }, 1000);
+
+    navigator.geolocation.getCurrentPosition(function (position) {
+        setTimeout(function () {
+            $('.qa-option .bootstrap-select select#state:required ~ label').css('top', '-20px');
+            $('.qa-option .bootstrap-select select#city:required ~ label').css('top', '-20px');
+        }, 1100)
+    });
+});
+
+function showStateCitylabels() {
+    $('.hideMe').show();
+}
+
+function suppliesRange(state) {
+	var qs = parseInt(window.location.href.slice(window.location.href.indexOf('?') + 1));
+	
+	var currentDate = new Date();
+	var minDate = new Date("2021-10-11"); //YYYY-MM-DD
+	var maxDate = new Date("2021-11-11"); //YYYY-MM-DD 
+	
+	if (state === "Karnataka" && qs == '116' && (currentDate >= minDate && currentDate <= maxDate) ) {
+		$('.deliveryDate').show();
+		$('.deliveryDate input').removeClass('ignoreClass');
+	}else {
+		$('.deliveryDate').hide(); 
+		$('.deliveryDate input').addClass('ignoreClass');
+	}
+}
+
+function vehiclePrice() {
+    var vehicleId = $('#vehicle').val();
+    var variantId = $('#variant').val();
+    // var stateId = $('#state').val();
+    var stateId = $('#stateId').val();
+    var colorId = $('#color').val();
+
+    if (stateId == null || stateId == "") {
+        // $(this).val(0);
+        // $('#state').focus();
+        // return false;
+    }
+
+    $("#price").val('');
+    $('#ColorName').val('');
+
+    var VehicleName = $("#vehicle option:selected");
+    $('#VehicleSelectedName').val(VehicleName.text());
+
+    var VaName = $("#variant option:selected");
+    $('#VariantName').val(VaName.text());
+
+    var CoName = $("#color option:selected");
+    $('#ColorName').val(CoName.text());
+
+    var StateName = $("#state option:selected");
+    $('#StateName').val(StateName.text());
+
+    var DealerName = $("#dealer option:selected");
+    $('#DealerName').val(DealerName.text());
+
+    $.getJSON("api/getPrice", { vehicle: vehicleId, variant: variantId, color: colorId, state: stateId },
+        function (data) {
+            $('#price').val('');
+            //$('#price').focus();
+            data = JSON.parse(data);
+
+            //alert(data);
+			var RdtxReg=0;
+			var OtherChrg=0;
+
+			
+            $.each(data, function (index, itemData) {
+                //alert(itemData.Price);
+                //$('#price').val('On Road Rs. ' + itemData.Price);
+               // $("#price").attr('value', 'On Road Rs. ' + itemData.Price);
+                //$('#ModelPrice').val(itemData.Price);
+               // $('#TotalPrice').html(itemData.Price.toString("## ##0"));
+                $('#PartId').val(itemData.PartId);
+
+              //  $('#hdnPaymentAmount1').val(itemData.Price);
+				
+			/*	RdtxReg=parseInt(itemData.RegistrationAmount.replace(/\s/g, ''))+parseInt(itemData.RoadTaxAmount.replace(/\s/g, ''));
+				OtherChrg=parseInt(itemData.HandlingCharges.replace(/\s/g, ''))+parseInt(itemData.HelmetCharges.replace(/\s/g, ''))+parseInt(itemData.NumberPlateCharges.replace(/\s/g, ''));
+				
+				$('.bkexPrice').html(itemData.Price);
+				
+				$('.bkRdtxReg').html(RdtxReg);
+				$('.bkIns').html(itemData.InsuranceAmount);
+				
+				$('.bkStdAcc').html(itemData.StandardAccessoriesAmount);
+				$('.bkOtherChg').html(OtherChrg);				
+				$('.bkOnRoad').html(itemData.OnRoadprice1);
+				
+				$('.bkOptAcc').html(itemData.OtherAccessories);
+				$('.bkStndAccDescption').html(itemData.StandardAccessoriesDecription);
+				$('.bkOptAccDescption').html(itemData.OtherAccessoriesDecription);
+				 $('#hdnPaymentAmount1').val(itemData.OnRoadprice1);
+				
+				var onRoadPriceInrStyle = itemData.OnRoadprice1.replace(/(\d)(?=(\d\d)+\d$)/g, "$1 ");
+				$('#price').val('On Road ₹ ' + onRoadPriceInrStyle);
+                $("#price").attr('value', 'On Road ₹ ' + onRoadPriceInrStyle);
+                $('#ModelPrice').val(itemData.OnRoadprice);
+                $('#TotalPrice').html(itemData.OnRoadprice1.replace(/(\d)(?=(\d\d)+\d$)/g, "$1 "));
+				$('.BookingPrice').html(itemData.BookingAmount.replace(/(\d)(?=(\d\d)+\d$)/g, "$1 "));
+				
+				*/
+                $('#price').val('Ex Showroom Rs. ' + itemData.Price);
+                $("#price").attr('value', 'Ex Showroom Rs. ' + itemData.Price);
+                $('#ModelPrice').val(itemData.Price);
+                $('#TotalPrice').html(itemData.Price.toString("## ##0"));
+                $('#PartId').val(itemData.PartId);
+
+                $('#hdnPaymentAmount1').val(itemData.Price);
+				$('.BookingPrice').html("5 000");
+				
+		var qs = parseInt(window.location.href.slice(window.location.href.indexOf('?') + 1));
+				var currentDate = new Date();
+				var minDate = new Date("2021-10-11"); //YYYY-MM-DD
+				var maxDate = new Date("2021-11-11"); //YYYY-MM-DD 
+				if ($('#state').val() === "Karnataka" && qs == '116' && (currentDate >= minDate && currentDate <= maxDate) ) {
+		           $('.BookingPrice').html("1 999");
+				   $('.campaign').val("1 999")
+	            }else {
+	            	$('.BookingPrice').html("5 000");
+	            }										
+				if ( itemData.Price === "NA") {
+					$('#btnSubmitBookAButton').prop('disabled', true); 
+					$('.priceNA').show();
+				}else {
+					$('#btnSubmitBookAButton').prop('disabled', false);
+					$('.priceNA').hide();
+				}
+            });
+        });
+
+}
+
+function clearDealerList() {
+    $("#dealer").empty();
+	if ($('.ui-selectmenu-menu').length ) {
+		$('#dealer').selectmenu('destroy'); 
+	}
+   
+}
+
+
+// Below Function Executes On Form Submit
+function clusterVinForm() {
+	$('.vin-error').hide();
+    var priceTxt = $('#selectedPaymentAmount').val();
+	
+	let vin = $('#vinInput').val();
+    let alfaNum = /^[a-zA-Z0-9]+$/;
+	
+	$('.paymentProcess .amount #TotalPrice').text(priceTxt);
+	//console.log('sfsfdf = ' + vin.length);
+    if(alfaNum.test(vin) == false){ 
+		$('.vin-error').text('Enter Your VIN To Check Eligibility');
+        $('.vin-error').removeClass('success').show();
+        $('#vinInput').focus();
+		$('.vinUpdradeWrap').hide();
+        return false;
+    }else {
+        //console.log("vin = " + vin);
+        $('.vin-error').hide();
+        $('.yourVinNoTxt>p>strong').text(vin);
+		var $thisEvent = $(this);
+        $.ajax({
+            url: '/api/getVinDetails',
+            type: "POST",
+            data: {
+                vinNumber: vin
+            },
+            success: function (result) {
+                var a = result.Success; 
+				var resMsg = result.Message;
+				//console.log("Response = " + resMsg);
+                if (a === true) {
+					$('.vinUpdradeWrap').show();
+					$('.vin-error').addClass('success').show();
+					//$('.vin-error').show();
+					$('.vin-error').text(resMsg);
+					equalheight('.desktop .clusterVin .checkboxCont.checkToRadio');
+                }else if (a === false) {
+					$('.vin-error').removeClass('success');
+					$('.vin-error').show();
+					$('.vin-error').text(resMsg);
+					$('.vinUpdradeWrap').hide();
+				}else if (a === "registered") {
+					$('.vin-error').removeClass('success');
+					$('.vin-error').show();
+					$('.vin-error').text(resMsg);
+					$('.vinUpdradeWrap').hide();
+				}
+            },
+            error: function (result) {
+				//console.log("fail");
+				$('.vinUpdradeWrap').hide();
+            }
+        });
+        return false;
+    }
+    //return true;
+}
+
+function dynamicIndianPrice() {
+    $('.productAmount').each(function () {
+        var productPrice = $(this).text();
+        var priceIndiaStyle = productPrice.replace(/(\d)(?=(\d\d)+\d$)/g, "$1 ");
+        $(this).text(priceIndiaStyle);
+    });
+}
+
+
+$.fn.serializeAndEncode = function () {
+    return $.map(this.serializeArray(), function (val) {
+        return [val.name, encodeURIComponent(val.value)].join('=');
+    }).join('&');
+};
+
+var setCookieObject = function (key, value) {
+    var d = new Date();
+    d.setTime(d.getTime() + 10 * 60 * 1000); // day - hours - min - sec- mili sec
+    var expires = "expires=" + d.toUTCString();
+    document.cookie = key + "=" + value + ";" + expires + ";Domain=;SameSite=Lax;path=/";
+}
+
+var getCookieObject = function (key) {
+    var name = key + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+
+function delete_cookie(name) {
+    document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+      $('#aog-community-form').validate({
+          errorElement: "label",
+          errorPlacement: function (error, element) {
+            if (element.is(":checkbox")) {
+              error.insertAfter(element.parents('.group .checkbox'));
+            } else { // This is the default behavior 
+              error.insertAfter(element);
+            }
+          },
+          ignore: [],
+          rules: {
+            
+            Name: {
+             required: true,
+              alphabets: true,
+              maxlength: 30
+            },
+            MobileNumber: {
+              required: true,
+              number: true,
+              minlength: 10,
+              maxlength: 10
+            },
+            Email: {
+               required: true,
+              email: true,
+              maxlength: 50
+            },
+            Vehicle: {
+              required: true,
+              maxlength: 30
+            },
+            stateServSuppAuth: {
+              required: true
+            },
+            cityServSuppAuth: {
+              required: true
+            },
+            accepted : {
+                required: true
+            },
+            tncCheckboxText : {
+                required: true
+            }
+          },
+      
+        submitHandler: function (form) {
+         
+        var dataString = $(form).serialize();
+        var that = form;
+            $.ajax({
+            type: "POST",
+            url: "/api/ApacheForm",
+            data: dataString,
+            error: function () {
+                alert("empty");
+            },
+            success: function () {
+            $('.priceForm').hide();
+            $('.sucessMsg').show();
+            }
+        });
+         
+          }
+        });
+		
+		function changePricing(vehicleTitle, state, pageName) {	
+    var count = $("sitecore-vehicles").find("vehicle").length;	
+    var modelIds = "";	
+    var partIds = "";	
+    if (count > 0) {	
+        for (var i = 0; i < count; i++) {	
+            modelIds = modelIds + ",'" + $($("sitecore-vehicles").find("vehicle")[i]).attr("data-vehiclemodelId") + "'";	
+            partIds = partIds + ",'" + $($("sitecore-vehicles").find("vehicle")[i]).attr("data-partid") + "'";	
+        }	
+    }	
+    if (modelIds.length > 0) {	
+        modelIds = modelIds.substring(1);	
+        partIds = partIds.substring(1);	
+    }	
+    $.getJSON("/api/GetVehicleDetails", { vehicle: vehicleTitle, stateCode: state, modelIds: modelIds, partIds: partIds },	
+        function (data) {	
+            switch (pageName) {	
+                case 'Apache':	
+                    RenderApachePricing(data, state, vehicleTitle);	
+                    break;	
+                case 'NTorq':	
+                    RenderNTorqPricing(data, state, vehicleTitle);	
+                    break;	
+                case 'Radeon':	
+                    RenderRadeonPricing(data, state, vehicleTitle);
+					break;
+                case 'Raider':
+                    RenderRaiderPricing(data, state, vehicleTitle);					
+            }	
+            FormatPrice();	
+        });	
+}	
+function RenderApachePricing(data, state, vehicleTitle) {	
+    if (data.length == 1) {	
+        $('#priceLable').html('<div class="priceWrapper row" id="variant-row"><div class="col-xs-12" style="height:80px"><p class="variant-ext" style="display:none">' + data[0].VariantNameExtension + '</p><h4 class="bike-price"><em>₹ <span class="productAmount">' + data[0].Price + '</span>*</em></h4></div></div>');	
+        $('.price-box').removeClass('variantPrice');
+		removeZeroPrice();		
+    }	
+     else if (data.length > 1 && data.length <= 2) {	
+        $('#priceLable').html('<div class="priceWrapper row"><div class="col-xs-6"  id="variant-row-1"><p class="variant-ext">' + data[0].VariantNameExtension + '</p><h4 class="bike-price"> <em><a href="javascript:void(0);" >₹ <span class="productAmount">' + data[0].Price + '</span></a>* <a href="javascript:void(0);" class="price-info" onclick="openPriceBreakup($(\'#variant-row-1\'), \'' + state + '\',\'' + vehicleTitle + '\')">Info</a></em></h4></div><div class= "col-xs-6" id="variant-row-2"><p class="variant-ext">' + data[1].VariantNameExtension + '</p><h4 class="bike-price"> <em><a href="javascript:void(0);">₹ <span class="productAmount">' + data[1].Price + '</span></a>* <a href="javascript:void(0);" class="price-info" onclick="openPriceBreakup($(\'#variant-row-2\'), \'' + state + '\',\'' + vehicleTitle + '\')">Info</a></em></h4></div></div>');	
+        $('.price-box').addClass('variantPrice');	
+		removeZeroPrice();
+    }	
+	else if (data.length > 2) {	
+        $('#priceLable').html('<div class="priceWrapper row"><div class="col-xs-6" id="variant-row-1"><p class="variant-ext">' + data[0].VariantNameExtension + '</p><h4 class="bike-price"> <em><a href="javascript:void(0);">₹ <span class="productAmount">' + data[0].Price + '</span></a>* <a href="javascript:void(0);" class="price-info" onclick="openPriceBreakup($(\'#variant-row-1\'), \'' + state + '\',\'' + vehicleTitle + '\')">Info</a></em></h4></div><div class="col-xs-6" id="variant-row-2"><p class="variant-ext">' + data[1].VariantNameExtension + '</p><h4 class="bike-price"> <em><a href="javascript:void(0);">₹ <span class="productAmount">' + data[1].Price + '</span></a>* <a href="javascript:void(0);" class="price-info" onclick="openPriceBreakup($(\'#variant-row-2\'), \'' + state + '\',\'' + vehicleTitle + '\')">Info</a></em></h4></div><div class="col-xs-6" id="variant-row-3"><p class="variant-ext">' + data[2].VariantNameExtension + '</p><h4 class="bike-price"> <em><a href="javascript:void(0);">₹ <span class="productAmount">' + data[2].Price + '</span></a>* <a href="javascript:void(0);" class="price-info" onclick="openPriceBreakup($(\'#variant-row-3\'), \'' + state + '\',\'' + vehicleTitle + '\')">Info</a></em></h4></div><div class="col-xs-6" id="variant-row-4"><p class="variant-ext">' + data[3].VariantNameExtension + '</p><h4 class="bike-price"> <em><a href="javascript:void(0);">₹ <span class="productAmount">' + data[3].Price + '</span></a>* <a href="javascript:void(0);" class="price-info" onclick="openPriceBreakup($(\'#variant-row-4\'), \'' + state + '\',\'' + vehicleTitle + '\')">Info</a></em></h4></div></div>');	
+        $('.price-box').addClass('variantPrice');	
+		removeZeroPrice();
+    }	
+    var selectedVariant = $('#variant').val();	
+    $('#variantImage').attr('src', $('#vehicleImageMap mapElement[data-vehicle="' + selectedVariant + '"]').data('variant-image'));	
+}	
+function RenderRaiderPricing(data, state, vehicleTitle) {
+    if (data.length == 1) {
+        $('#priceLable').html('<div class="priceWrapper row" id="variant-row"><div class="col-xs-12" style="height:80px"><p class="variant-ext" style="display:none">' + data[6].VariantNameExtension + '</p><h4 class="bike-price"><em><a href="javascript:void(0);" >₹ <span class="productAmount">' + data[6].Price + '</span>*</a></em></h4></div></div>');
+        $('.price-box').removeClass('variantPrice');
+        removeZeroPrice();
+    }
+    else if (data.length == 8) {
+        $('#priceLable').html('<div class="priceWrapper row"><div class="col-xs-6"  id="variant-row1"><p class="variant-ext">' + data[0].VariantNameExtension + '</p><h4 class="bike-price"> <em><a href="javascript:void(0);" >₹ <span class="productAmount">' + data[0].Price + '</span></a>*</em></h4></div><div class= "col-xs-6" id="variant-row2"><p class="variant-ext">' + data[4].VariantNameExtension + '</p><h4 class="bike-price"> <em><a href="javascript:void(0);">₹ <span class="productAmount">' + data[4].Price + '</span></a>*</em></h4></div></div>');
+        $('.price-box').addClass('variantPrice');
+        removeZeroPrice();
+    }
+    var selectedVariant = $('#variant').val();
+    $('#variantImage').attr('src', $('#vehicleImageMap mapElement[data-vehicle="' + selectedVariant + '"]').data('variant-image'));
+}
+function RenderNTorqPricing(data, state, vehicleTitle) {	
+    $('#priceTable dl').not(':first').remove();	
+    for (var i = 0; i < data.length; i++)	
+        $('#priceTable').append($('<dl id="variant-row-' + i + '" class="row"><dt class="col-xs-7 variant-ext">' + data[i].VariantNameExtension + '</dt><dd class="col-xs-5">₹ <span class="productAmount">' + data[i].Price + '</span> * </dd></dl>'));	
+	
+	removeZeroPrice();
+}	
+function RenderRadeonPricing(data, state, vehicleTitle) {	
+    $('#priceTable dl').not(':first').remove();	
+	/*  
+    for (var i = 0; i < data.length; i++)	
+        $('#priceTable').append($('<dl id="variant-row-' + i + '" class="row"><dt class="col-xs-7 variant-ext">' + data[i].VariantNameExtension + '</dt><dd class="col-xs-5">₹ <span class="productAmount">' + data[i].Price + '</span> *</dd></dl>'));	
+   */
+	
+	var classicVarriant = "";
+    for (var i = 0; i < data.length; i++) {	
+		if ( data[i].VariantNameExtension == "Classic" ) {
+			classicVarriant = $('<dl id="variant-row-' + i + '" class="row"><dt class="col-xs-7 variant-ext">' + data[i].VariantNameExtension + '</dt><dd class="col-xs-5"><a href="javascript:void(0);">₹ <span class="productAmount">' + data[i].Price + '</span> *</a> </dd></dl>');
+		} else {
+			$('#priceTable').append($('<dl id="variant-row-' + i + '" class="row"><dt class="col-xs-7 variant-ext">' + data[i].VariantNameExtension + '</dt><dd class="col-xs-5"><a href="javascript:void(0);">₹ <span class="productAmount">' + data[i].Price + '</span> *</a> </dd></dl>'));	
+		}
+		
+		if ( classicVarriant.length > 0 ) {
+			$('#priceTable').append(classicVarriant);	
+		}
+	}
+	removeZeroPrice();
+}	
+function removeZeroPrice(){
+	$('#priceTable dl.row').each(function(){
+		var priceAm = $(this).find('.productAmount').text();
+		if (priceAm == 0) {
+			$(this).find('.productAmount').closest('.row').hide();
+		}
+	});
+}
+function FormatPrice() {	
+    $('.productAmount').each(function () {	
+        var productPrice = $(this).text();	
+        var priceIndiaStyle = productPrice.replace(/(\d)(?=(\d\d)+\d$)/g, "$1 ");	
+        $(this).text(priceIndiaStyle);	
+    });	
+}	
+function openPriceBreakup(obj, stateCode, vehicleTitle) {	
+    var currentExtentionName = $(obj).find('.variant-ext').text();
+    var vehicle = $("sitecore-vehicles vehicle[data-variantnameextension='" + currentExtentionName + "']");	
+    var modelId = vehicle.attr('data-vehiclemodelId');	
+    var partId = vehicle.attr('data-partid');	
+    $('#priceBreakupModal').css("display", "none");	
+    $.getJSON("/api/GetPriceBreakup", { stateCode: stateCode, modelId: modelId, partId: partId },	
+        function (vehiclePriceBreakup) {	
+            $('#priceBreakupTable').find('#exShowroomPrice').text(vehiclePriceBreakup.Price);	
+            $('#priceBreakupTable').find('#RegistrationPrice').text(vehiclePriceBreakup.RegistrationAmount + vehiclePriceBreakup.RoadTaxAmount);	
+            $('#priceBreakupTable').find('#InsurancePrice').text(vehiclePriceBreakup.InsuranceAmount);	
+            $('#priceBreakupTable').find('#AccessoriesPrice').text(vehiclePriceBreakup.StandardAccessoriesAmount);	
+            $('#priceBreakupTable').find('#OtherCharges').text(vehiclePriceBreakup.HandlingCharges + vehiclePriceBreakup.HelmetCharges + vehiclePriceBreakup.NumberPlateCharges);	
+            $('#priceBreakupTable').find('#OnRoadPrice').text(vehiclePriceBreakup.OnRoadprice);	
+            $('#priceBreakupModal').find('#stateName').text($('#state option:selected').text());	
+            $('#priceBreakupModal').find('#cityName').text($('#city').val());	
+            $('#priceBreakupModal').find('#vehicleName').text(vehicleTitle + " " + currentExtentionName);	
+            $('#priceBreakupModal').addClass("in");	
+            $('#priceBreakupModal').css("display", "block");	
+			$('body').addClass('modal-open');	
+			$('body').append( '<div class="modal-backdrop fade in"></div>');	
+			FormatPrice(); 	
+        });	
+}	
+function closePriceBreakup() {	
+    $('#priceBreakupModal').removeClass("in");	
+    $('#priceBreakupModal').css("display", "none");	
+	$('body').removeClass('modal-open');	
+	$('.modal-backdrop.fade.in').remove();	
+}	
